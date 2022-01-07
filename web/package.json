@@ -1,0 +1,28 @@
+{
+  "name": "shan-shui-web",
+  "version": "0.1.0",
+  "description": "Procedurally generated chinese landscapes.",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack-dev-server --port 8000 --open --mode=\"development\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://githb.com/jbbe/shan-shui-web.git"
+  },
+  "author": "josh bell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jbbe/shan-shui/issues"
+  },
+  "homepage": "https://github.com/jbbe/shan-shui#readme",
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^1.6.0",
+    "html-webpack-plugin": "^5.5.0",
+    "text-encoding": "^0.7.0",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.6.0"
+  }
+}

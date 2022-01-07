@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shan Shui</title>
+    <style>
+        body {
+            background-color: #bebebe; 
+            margin: 0; 
+            overflow: hidden;
+            display: grid;
+            place-content: center;
+        }
+        /* #canvas {
+            height: 512px;
+            width: 512px;
+            position: absolute;
+            left: 100px;
+            top: 40px;
+            z-index: 2;
+        } */
+        #svg-container {
+            height: 512px;
+            /* width: 512px; */
+            display: flex;
+            position: absolute;
+            left: 100px;
+            top: 40px;
+            z-index: 4;
+        }
+        #svg-container div {
+            margin: 0px;
+            width: 512px;
+        }
+        #button-container {
+            position: absolute;
+            left: 5px;
+            top: 10px;
+            display: flex;
+            flex-direction: column;
+            
+        }
+        button {
+            background: #bebebebe;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #fff;
+        }
+        /* #refresh {
+        } */
+    </style>
+</head>
+<body >
+    <div id="button-container">
+        <button id="refresh">add</button>
+        <button id="reset">reset</button>
+    </div>
+    <!-- <canvas id="canvas"></canvas> -->
+    <div id="svg-container"></div>
+    <canvas style="display:none" id="bg-canvas"></canvas>
+</body>
+</html>

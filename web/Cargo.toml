@@ -1,0 +1,35 @@
+[package]
+name = "shan-shui-web"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+shan-shui = { path = "../core" }
+console_error_panic_hook =  "=0.1.5"
+js-sys = "0.3.19"
+nalgebra = "0.18.0"
+wasm-bindgen = "0.2.44"
+rand = "0.8.4"
+getrandom = { version = "0.2.3", features = ["js"] }
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+    'CanvasRenderingContext2d',
+    'Document',
+    'Element',
+    'EventTarget',
+    'HtmlCanvasElement',
+    'MouseEvent',
+    'WebGlBuffer',
+    'WebGlProgram',
+    'WebGlRenderingContext',
+    'WebGlShader',
+    'WebGlUniformLocation',
+    'Window',
+]
