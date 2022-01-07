@@ -818,6 +818,7 @@ dependencies = [
  "hyper 0.14.16",
  "nickel",
  "nickel_cors",
+ "rand",
  "shan-shui",
 ]
 
