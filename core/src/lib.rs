@@ -4,6 +4,13 @@ use svg::node::element::Path;
 use svg::node::element::Rectangle;
 use svg::Document;
 
+mod random;
+pub mod noise;
+
+use noise::Noise;
+use random::*;
+
+
 #[derive(Debug, Copy, Clone)]
 struct Point {
     x: f64,
@@ -27,104 +34,6 @@ fn distance(p1: &Point, p2: &Point) -> f64 {
 // GLOBAL CONSTS
 const PI: f64 = std::f64::consts::PI;
 
-/*
-* Perlin Noise
-*/
-const PERLIN_SIZE: usize = 4096;
-const PERLIN_LAST: usize = 4094;
-// const PERLIN_ARRAY_SIZE: usize = 4096;
-pub struct Noise {
-    perlin_octaves: usize,
-    perlin_amp_falloff: f64,
-    perlin: [f64; PERLIN_SIZE],
-}
-
-const PERLIN_YWRAPB: usize = 4;
-const PERLIN_YWRAP: usize = 1 << PERLIN_YWRAPB;
-const PERLIN_ZWRAPB: usize = 8;
-const PERLIN_ZWRAP: usize = 1 << PERLIN_ZWRAPB;
-impl Noise {
-    fn scaled_cosine(i: f64) -> f64 {
-        0.5 * (1. - f64::cos(i * PI))
-    }
-
-    pub fn new() -> Self {
-        let mut perlin = [0.0; PERLIN_SIZE];
-
-        for i in 0..PERLIN_SIZE {
-            perlin[i] = _rand();
-        }
-
-        Self {
-            perlin_octaves: 4,
-            perlin_amp_falloff: 0.5,
-            perlin,
-        }
-    }
-
-    pub fn noise(&self, x: f64, y: f64, z: f64) -> f64 {
-        let _x = if x < 0.0 { 0. - x } else { x };
-        let _y = if y < 0.0 { 0. - y } else { y };
-        let _z = if z < 0.0 { 0. - z } else { z };
-
-        let mut xi = _x as usize;
-        // let yi = f64::floor(y);
-        let mut yi = _y as u64;
-        // let zi = f64::floor(z);
-        let mut zi = _z as i64;
-        let mut xf = _x - f64::floor(_x);
-        let mut yf = _y - f64::floor(_y);
-        let mut zf = _z - f64::floor(_z);
-        let mut r = 0.;
-        let mut ampl = 0.5;
-        let mut n1: f64;
-        let mut n2: f64;
-        let mut n3: f64;
-
-        let mut o = 0;
-        while o < self.perlin_octaves {
-            // let of = xi + (yi << PERLIN_YWRAPB) + (zi << PERLIN_ZWRAPB);
-            let mut of = xi;
-            let rxf = Noise::scaled_cosine(xf);
-            let ryf = Noise::scaled_cosine(yf);
-            n1 = self.perlin[of & PERLIN_LAST];
-            n1 += rxf * (self.perlin[(of + 1) & PERLIN_LAST] - n1);
-            n2 = self.perlin[(of + PERLIN_YWRAP) & PERLIN_LAST];
-            n2 += rxf * (self.perlin[(of + PERLIN_YWRAP + 1) & PERLIN_LAST] - n2);
-            n1 += ryf * (n2 - n1);
-            of += PERLIN_ZWRAP;
-            n2 = self.perlin[of & PERLIN_LAST];
-            n2 += rxf * (self.perlin[(of + 1) & PERLIN_LAST] - n2);
-            n3 = self.perlin[(of + PERLIN_YWRAP) & PERLIN_LAST];
-            n3 += rxf * (self.perlin[(of + PERLIN_YWRAP + 1) & PERLIN_LAST] - n3);
-            n2 += ryf * (n3 - n2);
-            n1 += Noise::scaled_cosine(zf) * (n2 - n1);
-            r += n1 * ampl;
-            ampl *= self.perlin_amp_falloff;
-            xi = xi << 1;
-            xf = xf * 2.;
-            yi = yi << 1;
-            yf = yf * 2.;
-            zi = zi << 1;
-            zf = zf * 2.;
-            if xf >= 1.0 {
-                xi = xi + 1;
-                xf = xf - 1.;
-            }
-            if yf >= 1.0 {
-                yi = yi + 1;
-                yf = yf - 1.;
-            }
-            if zf >= 1.0 {
-                zi = zi + 1;
-                zf = zf - 1.;
-            }
-            // increment for loop
-            o = o + 1;
-        }
-        r
-    }
-}
 
 /*
 * Utils
@@ -473,9 +382,6 @@ fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
     format!("rgb({},{},{},{})", r, g, b, a)
 }
 
-fn map_val(val: f64, i_start: f64, i_stop: f64, o_start: f64, o_stop: f64) -> f64 {
-    o_start + (o_stop - o_start) * (((val - i_start) * 1.0) / (i_stop - i_start))
-}
 
 fn loop_noise(ns_list: &mut Vec<f64>) {
     let dif = ns_list[ns_list.len() - 1] - ns_list[0];
@@ -497,48 +403,6 @@ fn loop_noise(ns_list: &mut Vec<f64>) {
     // ns_list
 }
 
-fn _rand() -> f64 {
-    rand::random::<f64>()
-}
-
-fn norm_rand(little_m: f64, big_m: f64) -> f64 {
-    map_val(_rand(), 0., 1., little_m, big_m)
-}
-
-fn rand_bool() -> bool {
-    if _rand() > 0.5 {
-        true
-    } else {
-        false
-    }
-}
-
-fn wt_rand(f: fn(f64) -> f64) -> f64 {
-    let x = _rand();
-    let y = _rand();
-    if y < f(x) {
-        x
-    } else {
-        wt_rand(f)
-    }
-}
-
-fn rand_gauss() -> f64 {
-    wt_rand(|x| f64::powf(std::f64::consts::E, -24. * f64::powf(x - 0.5, 2.))) * 2. - 1.
-}
-
-// fn rand_choice<T>(arr: Vec<T>) -> T {
-//     let idx = f64::floor(arr.len() as f64 * _rand()) as usize;
-//     arr[idx]
-// }
-fn rand_choice_arr(arr: &[usize]) -> usize {
-    let idx = f64::floor(arr.len() as f64 * _rand()) as usize;
-    arr[idx]
-}
-fn rand_choice_arrf(arr: &[f64]) -> f64 {
-    let idx = f64::floor(arr.len() as f64 * _rand()) as usize;
-    arr[idx]
-}
 
 /*
 * Trees
@@ -763,6 +627,7 @@ fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
         let mut veg_list: Vec<Point> = Vec::new();
         let mut g = Group::new();
         // might be error in original impl here he uses len straightI
+        /*
         let i_lim = pt_list.len() - 1;
         for i in 0..i_lim {
             // same possibl error as above
@@ -791,6 +656,7 @@ fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
                 }
             }
         }
+        */
         g
     }
 
@@ -1450,8 +1316,10 @@ fn load_chunk(app_state: &mut State, noise_generator: &Noise, x_min: f64, x_max:
             println!("create svg for chunk {:?} {:?} {:?}", p.tag, p.x, p.y);
             if p.tag == Tag::Mount {
                 let svg_node = mountain(noise_generator, p.x, p.y, (i * 2) as f64 * _rand());
-                let w = water(noise_generator, p.x, p.y - 1000., WaterArgs::default());
-                g = g.add(svg_node).add(w);
+                // let w = water(noise_generator, p.x, p.y - 1000., WaterArgs::default());
+                g = g.add(svg_node)
+                // .add(w)
+                ;
             } else if p.tag == Tag::FlatMount {
                 // g = g.add()
             } else if p.tag == Tag::DistMount {
