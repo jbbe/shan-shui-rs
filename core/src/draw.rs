@@ -1,4 +1,4 @@
-use svg::node::element::{Group, Path, Rectangle};
+use svg::node::element::{Group, Polyline, Rectangle};
 use super::point::*;
 use super::noise::Noise;
 
@@ -44,29 +44,32 @@ impl PolyArgs {
     }
 }
 
-pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> Path {
-    let mut data = svg::node::element::path::Data::new();
+pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> Polyline {
+    // let mut data = svg::node::element::path::Data::new();
     // let mut path_data = Rc::new(usvg::PathData::new());
     let p_count = p_list.len();
+    let mut p_data = Vec::new();
+    p_data.reserve(p_count);
     // let points = p_list.map
     // let p_data_vec = Vec::new
     for i in 0..p_count {
         let x = p_list[i].x + args.x_off;
         let y = p_list[i].y + args.y_off;
-        if i == 0 {
-            data = data.move_to((x, y));
-        } else {
-            data = data.line_by((x, y));
-        }
+        p_data.push(format!("{:.2}, {:.2}", x, y));
+        // if i == 0 {
+        //     data = data.move_to((x, y));
+        // } else {
+        //     data = data.line_by((x, y));
+        // }
     }
-    data = data.close();
+    let fmtd_pts = p_data.join(" ");
+    // data = data.close();
     // usvg::Path::()
-    Path::new()
-        .set("fill", "none")
+    Polyline::new()
         .set("fill", args.fil)
         .set("stroke", args.stroke)
         .set("stroke-width", args.width)
-        .set("d", data)
+        .set("points", fmtd_pts)
 }
 
 pub struct StrokeArgs {
@@ -111,7 +114,7 @@ fn stroke_zip(
     vtx_list
 }
 
-pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Option<Path> {
+pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Option<Polyline> {
     if pt_list.len() == 0 {
         return None;
     }
@@ -193,7 +196,7 @@ impl BlobArgs {
     }
 }
 
-pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Path {
+pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
     let reso = 20.;
     let mut la_list = Vec::new();
     let i_lim = reso as usize + 1;

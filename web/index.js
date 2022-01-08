@@ -7,6 +7,7 @@ function getSvgFromAPI(path) {
 }
 
 async function getChunk(path) {
+  console.log("requesting chunk", path)
   const resp = await getSvgFromAPI(path);
   const data = await resp.text();
   console.log("received chunk appending..");
@@ -36,8 +37,8 @@ window.onload = () => {
       }
       drawBackground(Math.random());
 
-      const refreshButton = document.getElementById("refresh");
-      refreshButton.onclick = getChunk;
+      const addButton = document.getElementById("add");
+      addButton.onclick = () => getChunk();
 
       const resetButton = document.getElementById("reset");
       resetButton.onclick = reset;

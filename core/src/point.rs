@@ -5,6 +5,12 @@ pub struct Point {
     pub y: f64,
 }
 
+// impl Point {
+//     to_string(&self) -> String {
+//         format!("{:.2}, {:.2}", self.x, self.y)
+//     }
+// }
+
 const EPSILON: f64 = 0.001;
 impl PartialEq for Point {
     fn eq(&self, other: &Self) -> bool {

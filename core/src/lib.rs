@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use svg::node::element::{Group, Path};
+use svg::node::element::{Group, Polyline};
 use svg::Document;
 
 pub mod noise;
@@ -514,7 +514,7 @@ struct Man {}
 #[allow(dead_code)]
 struct ManArgs {
     sca: f64,
-    hat: fn(Point, Point, bool) -> Path,
+    hat: fn(Point, Point, bool) -> Polyline,
     ite: fn(&mut Noise, Point, Point) -> Group,
     fli: bool,
     angle: [f64; 9],
@@ -577,7 +577,7 @@ impl Man {
             .collect()
     }
 
-    fn hat02(p0: Point, p1: Point, fli: bool) -> Path {
+    fn hat02(p0: Point, p1: Point, fli: bool) -> Polyline {
         // let seed = _rand();
 
         let f = if fli { Man::flipper } else { |x| x };
