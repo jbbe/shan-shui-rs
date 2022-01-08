@@ -18,6 +18,30 @@ fn main() {
             // shan_shui::svg_string(false)
             painting.write_svg(256., 256.)
         }
+        get "/mount/:seed" => |req, mut res| {
+            res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
+            res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
+            let seed_str = req.param("seed").unwrap();
+            let seed = seed_str.parse::<f64>().unwrap();
+            let mut painting = shan_shui::Painting::new(seed);
+            // let id = rand::random::<i32>();
+            // sessions = sessions.insert(id, painting);
+            // shan_shui::svg_string(false)
+            println!("route mount");
+            painting.draw_mount()
+        }
+        get "/boat/:seed" => |req, mut res| {
+            res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
+            res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
+            let seed_str = req.param("seed").unwrap();
+            let seed = seed_str.parse::<f64>().unwrap();
+            let mut painting = shan_shui::Painting::new(seed);
+            // let id = rand::random::<i32>();
+            // sessions = sessions.insert(id, painting);
+            // shan_shui::svg_string(false)
+            println!("route boat");
+            painting.draw_boat()
+        }
     });
     server.listen("127.0.0.1:6767").unwrap();
 }

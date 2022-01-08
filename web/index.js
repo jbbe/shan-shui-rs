@@ -1,13 +1,13 @@
 const rust = import("./pkg/index_bg");
 
-function getSvgFromAPI() {
+function getSvgFromAPI(path) {
   const seedInput = document.getElementById("seed");
   const seed = seedInput.value;
-  return fetch(`http://localhost:6767/${seed}`);
+  return fetch(`http://localhost:6767${path ?? ""}/${seed}`);
 }
 
-async function getChunk() {
-  const resp = await getSvgFromAPI();
+async function getChunk(path) {
+  const resp = await getSvgFromAPI(path);
   const data = await resp.text();
   console.log("received chunk appending..");
   const container = document.getElementById("svg-container");
@@ -41,6 +41,12 @@ window.onload = () => {
 
       const resetButton = document.getElementById("reset");
       resetButton.onclick = reset;
+
+      const boat = document.getElementById("boat");
+      boat.onclick = () => getChunk("/boat");
+      
+      const mount = document.getElementById("mount");
+      mount.onclick = () => getChunk("/mount");
 
       const seedInput = document.getElementById("seed");
       seedInput.onchange = ((e) => {
