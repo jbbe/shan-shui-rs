@@ -2,7 +2,7 @@ To DO
 *****
 
 
-Enable cors
-Host sessions
-Expose struct with an app_state
-write chunks of smaller increments in loop
+x Enable cors
+  Host session
+  Expose struct with an app_state
+  write chunks of smaller increments in loop
