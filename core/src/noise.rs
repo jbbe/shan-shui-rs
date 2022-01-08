@@ -1,4 +1,3 @@
-use super::random::_rand;
 /*
 * Perlin Noise
 */
@@ -11,6 +10,7 @@ pub struct Noise {
     perlin_octaves: usize,
     perlin_amp_falloff: f64,
     perlin: [f64; PERLIN_SIZE],
+    prng: Prng,
 }
 
 const PERLIN_YWRAPB: usize = 4;
@@ -18,8 +18,7 @@ const PERLIN_YWRAP: usize = 1 << PERLIN_YWRAPB;
 const PERLIN_ZWRAPB: usize = 8;
 const PERLIN_ZWRAP: usize = 1 << PERLIN_ZWRAPB;
 
-
-/** Source 
+/** Source
  * https://raw.githubusercontent.com/processing/p5.js/master/src/math/noise.js
  * Returns the Perlin noise value at specified coordinates. Perlin noise is
  * a random sequence generator producing a more naturally ordered, harmonic
@@ -39,9 +38,9 @@ const PERLIN_ZWRAP: usize = 1 << PERLIN_ZWRAPB;
  * function's use of frequencies. Similar to the concept of harmonics in
  * physics, perlin noise is computed over several octaves which are added
  * together for the final result. <br /><br />
- * 
+ *
  * Another way to adjust the character of the resulting sequence is the scale
- * of the input coordinates. 
+ * of the input coordinates.
  * As the function works within an infinite space the value of
  * the coordinates doesn't matter as such, only the distance between
  * successive coordinates does (eg. when using <b>noise()</b> within a
@@ -56,15 +55,18 @@ impl Noise {
 
     pub fn new() -> Self {
         let mut perlin = [0.0; PERLIN_SIZE];
+        let mut prng = Prng::new();
+        prng.seed_t();
 
         for i in 0..PERLIN_SIZE {
-            perlin[i] = _rand();
+            perlin[i] = prng.rand();
         }
 
         Self {
             perlin_octaves: 4,
             perlin_amp_falloff: 0.5,
             perlin,
+            prng,
         }
     }
 
@@ -130,8 +132,174 @@ impl Noise {
         }
         r
     }
+
+    pub fn rand(&mut self) -> f64 {
+        self.prng.rand()
+    }
+
+    pub fn loop_noise(&self, ns_list: &mut Vec<f64>) {
+        let dif = ns_list[ns_list.len() - 1] - ns_list[0];
+        let mut bds = [100., -100.];
+        let i_lim = ns_list.len();
+        for i in 0..i_lim {
+            ns_list[i] = ns_list[i] * (dif * (ns_list.len() as f64 - 1. - i as f64))
+                / ((ns_list.len() - 1) as f64);
+            if ns_list[i] < bds[0] {
+                bds[0] = ns_list[i];
+            }
+            if ns_list[i] > bds[1] {
+                bds[1] = ns_list[i];
+            }
+        }
+        for i in 0..i_lim {
+            ns_list[i] = map_val(ns_list[i], bds[0], bds[1], 0., 1.);
+        }
+        // ns_list
+        ()
+    }
+
+   pub fn norm_rand(&mut self, little_m: f64, big_m: f64) -> f64 {
+        map_val(self.rand(), 0., 1., little_m, big_m)
+    }
+
+    pub fn rand_bool(&mut self) -> bool {
+        if self.rand() > 0.5 {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn wt_rand(&mut self, f: fn(f64) -> f64) -> f64 {
+        let x = self.rand();
+        let y = self.rand();
+        if y < f(x) {
+            x
+        } else {
+            self.wt_rand(f)
+        }
+    }
+
+    pub fn rand_gauss(&mut self) -> f64 {
+        self.wt_rand(|x| f64::powf(std::f64::consts::E, -24. * f64::powf(x - 0.5, 2.))) * 2. - 1.
+    }
+
+    // fn rand_choice<T>(arr: Vec<T>) -> T {
+    //     let idx = f64::floor(arr.len() as f64 * _rand()) as usize;
+    //     arr[idx]
+    // }
+    pub fn rand_choice_arr(&mut self, arr: &[usize]) -> usize {
+        let r = self.rand();
+        let idx = f64::floor(arr.len() as f64 * r) as usize;
+        arr[idx]
+    }
+    pub fn rand_choice_arrf(&mut self, arr: &[f64]) -> f64 {
+        let r = self.rand();
+        let idx = f64::floor(arr.len() as f64 * r) as usize;
+        arr[idx]
+    }
 }
 
+/*
+* Pseudo Random Number Generator
+*/
+
+pub struct Prng {
+    s: u64,
+    p: u64,
+    q: u64,
+    m: u64,
+}
+
+impl Prng {
+    pub fn new() -> Self {
+        let p = 999979; //9887//983
+        let q = 999983; //9967//991
+        let m = p * q;
+        Self { s: 1234, p, q, m }
+    }
+
+    pub fn seed_t(&mut self) {
+        let x = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("Tim went backwards")
+            .as_secs_f64();
+        self.seed(x);
+        ()
+    }
+
+    pub fn seed(&mut self, x: f64) {
+        let mut y = 0;
+        let mut z = 0;
+        while y % self.p == 0 || y % self.q == 0 || y == 0 || y == 1 {
+            // this is called the redo function in js
+            y = (hash(x) + z) % self.m;
+            z = z + 1;
+        }
+        self.s = y;
+        println!("int seed {}", self.s);
+        for _ in 0..10 {
+            self.next();
+        }
+        ()
+    }
+
+    fn next(&mut self) -> f64 {
+        self.s = self.s.wrapping_mul(self.s) % self.m;
+        (self.s as f64) / (self.m as f64)
+    }
+
+    pub fn rand(&mut self) -> f64 {
+        self.next()
+    }
+ 
+}
+// Not sure what j
+fn hash(x: f64) -> u64 {
+    let x_str = x.to_string();
+    let b64 = base64::encode(x_str);
+    let chars: Vec<char> = b64.chars().collect();
+    let mut z = 0.;
+    let lim = chars.len();
+    for i in 0..lim {
+        let c = chars[i] as u64;
+        let c_f = c as f64;
+        z = z + (c_f * f64::powi(128., i as i32));
+    }
+    z as u64
+}
+
+// pub fn _rand() -> f64 {
+//     rand::random::<f64>()
+// }
+
+pub fn map_val(val: f64, i_start: f64, i_stop: f64, o_start: f64, o_stop: f64) -> f64 {
+    o_start + (o_stop - o_start) * (((val - i_start) * 1.0) / (i_stop - i_start))
+}
+
+#[test]
+fn hash_test() {
+    let a = hash(1.2);
+    let a_corr = 254618061;
+
+    // let a_diff = if a_corr > a_diff { a_corr - a_diff } else { a_diff - a_corr }
+    assert_eq!(a_corr, a);
+
+    let b = hash(3.);
+    let b_corr = 128941005;
+    println!("b({})", b);
+
+    assert_eq!(b_corr, b);
+}
+
+#[test]
+fn rand_is_normal() {
+    let mut p = Prng::new();
+    for _ in 0..200 {
+        let r = p.rand();
+        assert_eq!(r < 1., true);
+    }
+}
 #[test]
 
 fn test_noise() {

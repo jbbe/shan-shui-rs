@@ -4,11 +4,9 @@ use svg::node::element::Path;
 use svg::node::element::Rectangle;
 use svg::Document;
 
-mod random;
 pub mod noise;
 
-use noise::Noise;
-use random::*;
+pub use noise::Noise;
 
 
 #[derive(Debug, Copy, Clone)]
@@ -113,7 +111,7 @@ fn stroke_zip(
     vtx_list
 }
 
-fn stroke(noise: &Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Option<Path> {
+fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Option<Path> {
     if pt_list.len() == 0 {
         return None;
     }
@@ -125,7 +123,7 @@ fn stroke(noise: &Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Option<Path>
     let width = args.width;
     let fun = args.fun;
 
-    let n0 = _rand() * 10.;
+    let n0 = noise.rand() * 10.;
     let pt_lim = pt_len - 1;
     for i in 1..pt_lim {
         let wa = width * fun(i as f64 / (pt_len as f64));
@@ -193,7 +191,7 @@ impl BlobArgs {
     }
 }
 
-fn blob(noise: &Noise, x: f64, y: f64, args: BlobArgs) -> Path {
+fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Path {
     let reso = 20.;
     let mut la_list = Vec::new();
     let i_lim = reso as usize + 1;
@@ -206,14 +204,15 @@ fn blob(noise: &Noise, x: f64, y: f64, args: BlobArgs) -> Path {
         la_list.push(Point { x: l, y: a });
     }
     let mut ns_list = Vec::new();
-    let n0 = _rand() * 10.;
+    let n0 = noise.rand() * 10.;
 
     for i in 0..i_lim {
         ns_list.push(noise.noise(i as f64 * 0.05, n0, 0.));
     }
 
-    // ns_list =
-    loop_noise(&mut ns_list);
+    // ns_list = 
+    noise.loop_noise(&mut ns_list);
+    
     let mut p_list = Vec::new();
     let la_len = la_list.len();
     for i in 0..la_len {
@@ -235,7 +234,7 @@ struct TextureArgs {
     sha: f64,
     col: String,
     noi: fn(f64) -> f64,
-    dis: fn() -> f64,
+    dis: fn(&mut Noise) -> f64,
 }
 impl TextureArgs {
     fn default() -> Self {
@@ -248,31 +247,31 @@ impl TextureArgs {
             sha: 0.,
             col: color_a(200, 200, 200, 0.9),
             noi: |x| 30. / x,
-            dis: || {
-                if _rand() <= 0.5 {
-                    (1. / 3.) * _rand()
+            dis: |noise: &mut Noise| {
+                if noise.rand() <= 0.5 {
+                    (1. / 3.) * noise.rand()
                 } else {
-                    (2. / 3.) + (1. / 3.) * _rand() // ??? orignal make so sense beyond just being rand
+                    (2. / 3.) + (1. / 3.) * noise.rand() // ??? orignal make so sense beyond just being rand
                 }
             },
         }
     }
 }
-fn texture(noise: &Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) -> Group {
+fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) -> Group {
     let reso = [pt_list.len(), pt_list[0].len()];
     let reso_f = [pt_list.len() as f64, pt_list[0].len() as f64];
     let mut tex_list: Vec<Vec<Point>> = Vec::new();
 
-    let dis = || {
-        if _rand() <= 0.5 {
-            (1. / 3.) * _rand()
+    let dis = |noise: &mut Noise| {
+        if noise.rand() <= 0.5 {
+            (1. / 3.) * noise.rand()
         } else {
-            (2. / 3.) + (1. / 3.) * _rand() // ??? orignal make so sense beyond just being rand
+            (2. / 3.) + (1. / 3.) * noise.rand() // ??? orignal make so sense beyond just being rand
         }
     };
     for i in 0..args.tex {
-        let mid = ((dis()) * reso[1] as f64) as i32 | 0;
-        let h_len = f64::floor(_rand() * (reso[1] as f64 * args.len)) as i32;
+        let mid = ((dis(noise)) * reso[1] as f64) as i32 | 0;
+        let h_len = f64::floor(noise.rand() * (reso[1] as f64 * args.len)) as i32;
         let start = mid - h_len;
         let end = mid + h_len;
         let u_start = i32::min(i32::max(start, 0), reso[1] as i32) as usize;
@@ -382,28 +381,6 @@ fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
     format!("rgb({},{},{},{})", r, g, b, a)
 }
 
-
-fn loop_noise(ns_list: &mut Vec<f64>) {
-    let dif = ns_list[ns_list.len() - 1] - ns_list[0];
-    let mut bds = [100., -100.];
-    let i_lim = ns_list.len();
-    for i in 0..i_lim {
-        ns_list[i] = ns_list[i] * (dif * (ns_list.len() as f64 - 1. - i as f64))
-            / ((ns_list.len() - 1) as f64);
-        if ns_list[i] < bds[0] {
-            bds[0] = ns_list[i];
-        }
-        if ns_list[i] > bds[1] {
-            bds[1] = ns_list[i];
-        }
-    }
-    for i in 0..i_lim {
-        ns_list[i] = map_val(ns_list[i], bds[0], bds[1], 0., 1.);
-    }
-    // ns_list
-}
-
-
 /*
 * Trees
 */
@@ -426,7 +403,7 @@ fn default_tree1_args() -> TreeArgs {
     }
 }
 
-fn tree01(noise: &Noise, x: f64, y: f64, args: TreeArgs) -> Group {
+fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
     let reso = 10;
     let mut ns_list: Vec<Point> = Vec::new();
     for i in 0..reso {
@@ -446,15 +423,21 @@ fn tree01(noise: &Noise, x: f64, y: f64, args: TreeArgs) -> Group {
         if i >= reso / 4 {
             let j_limm = (reso - i) / 5;
             for _ in 0..j_limm {
+                let r1 = noise.rand();
+                let r2 = noise.rand();
+                let r3= noise.rand();
+                let r4= noise.rand();
+                let r5= noise.rand();
+                let r6= noise.rand();
                 g = g.add(blob(
                     noise,
-                    nx + (_rand() - 0.5) * args.width * 1.2 * (reso - i) as f64,
-                    ny + (_rand() - 0.5) * args.width,
+                    nx + (r1 - 0.5) * args.width * 1.2 * (reso - i) as f64,
+                    ny + (r2 - 0.5) * args.width,
                     BlobArgs {
-                        len: _rand() * 20. * (reso - i) as f64 * 0.2 + 10.,
-                        width: _rand() * 6. + 3.,
-                        angle: ((_rand() - 0.5) * PI) / 6.,
-                        col: color_a(100, 100, 100, _rand() * 0.2 + 0.5),
+                        len: r3 * 20. * (reso - i) as f64 * 0.2 + 10.,
+                        width: r4 * 6. + 3.,
+                        angle: ((r5 - 0.5) * PI) / 6.,
+                        col: color_a(100, 100, 100, r6 * 0.2 + 0.5),
                         ..BlobArgs::default()
                     },
                 ))
@@ -492,21 +475,25 @@ fn default_tree2_args() -> TreeArgs {
     }
 }
 
-fn tree02(noise: &Noise, x: f64, y: f64, args: TreeArgs) -> Group {
+fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
     let clu = args.clu as u8;
     let mut g = Group::new();
     for _ in 0..clu {
+        let r1 = noise.rand();
+        let r2 = noise.rand();
+        let rg1 = noise.rand_gauss();
+        let rg2 = noise.rand_gauss();
         g = g.add(blob(
             noise,
-            x + rand_gauss() * args.clu * 4.,
-            y + rand_gauss() * args.clu * 4.,
+            x + rg1 * args.clu * 4.,
+            y + rg2 * args.clu * 4.,
             BlobArgs {
                 angle: PI / 2.,
                 // col: color_a(100, 100, 100, 0.8),
                 col: args.col.to_string(),
                 // default fun
-                width: _rand() * (args.width * 0.75) + (args.width * 0.5),
-                len: _rand() * (args.height * 0.75) + (args.height * 0.5),
+                width: r1 * (args.width * 0.75) + (args.width * 0.5),
+                len: r2 * (args.height * 0.75) + (args.height * 0.5),
                 ..BlobArgs::default()
             },
         ));
@@ -515,15 +502,15 @@ fn tree02(noise: &Noise, x: f64, y: f64, args: TreeArgs) -> Group {
 }
 // struct Tre
 const ONE_TWO_ARR: [usize; 2] = [1, 2];
-fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
-    fn foot(noise: &Noise, pt_list: &Vec<Vec<Point>>, x_off: f64, y_off: f64) -> Group {
+fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
+    fn foot(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, x_off: f64, y_off: f64) -> Group {
         let mut ft_list: Vec<Vec<Point>> = Vec::new();
         let span = 10;
         let mut ni = 0;
         let loop_limit = pt_list.len() - 2;
         for i in 0..loop_limit {
             if i == ni {
-                ni = usize::min(ni + rand_choice_arr(&ONE_TWO_ARR), pt_list.len() - 1);
+                ni = usize::min(ni + noise.rand_choice_arr(&ONE_TWO_ARR), pt_list.len() - 1);
                 ft_list.push(Vec::new());
                 ft_list.push(Vec::new());
                 let j_lim = usize::min(pt_list[i].len() / 8, 10);
@@ -607,15 +594,15 @@ fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
     }
 
     fn vegetate(
-        noise: &Noise,
+        noise: &mut Noise,
         pt_list: &Vec<Vec<Point>>,
         x_off: f64,
         y_off: f64,
         seed: f64,
         h: f64,
-        tree_func: fn(noise: &Noise, x: f64, y: f64, x_off: f64, y_off: f64, h: f64) -> Group,
+        tree_func: fn(noise: &mut Noise, x: f64, y: f64, x_off: f64, y_off: f64, h: f64) -> Group,
         growth_rule: fn(
-            noise: &Noise,
+            noise: &mut Noise,
             pts: &Vec<Vec<Point>>,
             i: usize,
             j: usize,
@@ -660,8 +647,8 @@ fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
         g
     }
 
-    let height = 100. + _rand() * 400.;
-    let width = 400. + _rand() * 200.;
+    let height = 100. + noise.rand() * 400.;
+    let width = 400. + noise.rand() * 200.;
     // let tex = 200.;
     let veg = true;
 
@@ -672,7 +659,7 @@ fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
     let mut group = Group::new();
     // let g = usvg::Node<usvg::NodeKind::Group>;
     for j in 0..reso[0] {
-        hoff = hoff + ((_rand() * y_off) / 100.);
+        hoff = hoff + ((noise.rand() * y_off) / 100.);
         pt_list.push(Vec::new());
         for i in 0..reso[1] {
             let x = (i as f64 / reso[1] as f64 - 0.5) * PI;
@@ -760,7 +747,7 @@ fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
 
     // texture
     let arr = [0., 0., 0., 0., 5.];
-    let sha = rand_choice_arrf(&arr);
+    let sha = noise.rand_choice_arrf(&arr);
     let col = color(100, 0, 0);
     group = group.add(texture(
         noise,
@@ -819,19 +806,21 @@ fn mountain(noise: &Noise, x_off: f64, y_off: f64, seed: f64) -> Group {
             |noise, x, y, x_off, y_off, h| {
                 // todo should be tree 02
                 let mut ht = ((h + y) / h) * 70.;
-                ht = ht * 0.3 + _rand() * ht * 0.7;
+                ht = ht * 0.3 + noise.rand() * ht * 0.7;
+                let r1 = noise.rand();
+                let noise_val = noise.noise(0.01 * x, 0.01 * y, 0.);
                 tree01(
                     noise,
                     x + x_off,
                     y + y_off,
                     TreeArgs {
                         height: ht,
-                        width: _rand() * 3. + 1.,
+                        width: r1 * 3. + 1.,
                         col: color_a(
                             100,
                             100,
                             100,
-                            noise.noise(0.01 * x, 0.01 * y, 0.) * 0.5 * 0.3 + 0.3,
+                            noise_val * 0.5 * 0.3 + 0.3,
                         ),
                         ..default_tree2_args()
                     },
@@ -852,24 +841,24 @@ struct Man {}
 struct ManArgs {
     sca: f64,
     hat: fn(Point, Point, bool) -> Path,
-    ite: fn(&Noise, Point, Point) -> Group,
+    ite: fn(&mut Noise, Point, Point) -> Group,
     fli: bool,
     angle: [f64; 9],
     len: [f64; 9],
 }
 
 impl ManArgs {
-    fn default() -> Self {
+    fn default(n: &mut Noise) -> Self {
         Self {
             angle: [
                 0.,
                 -PI / 2.,
-                norm_rand(0., 0.),
-                (PI / 4.) * _rand(),
-                ((PI * 3.) / 4.) * _rand(),
+                n.norm_rand(0., 0.),
+                (PI / 4.) * n.rand(),
+                ((PI * 3.) / 4.) * n.rand(),
                 (PI * 3.) / 4.,
                 -PI / 4.,
-                (-PI * 3.) / 4. - (PI / 4.) * _rand(),
+                (-PI * 3.) / 4. - (PI / 4.) * n.rand(),
                 -PI / 4.,
             ],
             ite: |_n, _p0, _p1| Group::new(),
@@ -942,8 +931,8 @@ impl Man {
         )
     }
 
-    fn stick01(noise: &Noise, _p0: Point, _p2: Point, _args: StickArgs) -> Group {
-        let seed = _rand();
+    fn stick01(noise: &mut Noise, _p0: Point, _p2: Point, _args: StickArgs) -> Group {
+        let seed = noise.rand();
         // let f = if args.fli { Man::flipper } else { |x: Vec<Point>| -> Vec<Point> {x} };
 
         let mut q_list1 = Vec::new();
@@ -981,7 +970,7 @@ impl BoatArgs {
     }
 }
 
-fn boat01(x_off: f64, y_off: f64, args: BoatArgs) -> Group {
+fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> Group {
     let mut g = Group::new();
     let dir = if args.fli { -1. } else { 1. };
     g = g.add(Man::man(
@@ -993,7 +982,7 @@ fn boat01(x_off: f64, y_off: f64, args: BoatArgs) -> Group {
             sca: 0.5 * (args.scale),
             fli: !(args.fli),
             len: [0., 30., 20., 30., 10., 30., 30., 30., 30.],
-            ..ManArgs::default()
+            ..ManArgs::default(noise)
         },
     ));
     // g = g.add()
@@ -1016,15 +1005,15 @@ impl WaterArgs {
     }
 }
 
-fn water(noise: &Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Group {
+fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Group {
     let mut g = Group::new();
     let mut pt_list = Vec::new();
     let mut yk = 0.;
     for _ in 0..(args.clu) {
         pt_list.push(Vec::new());
-        let xk = (_rand() - 0.5) * ((args.len) / 8.);
-        yk = yk + (_rand() * 5.);
-        let lk = ((args.len) / 4.) + _rand() * (args.len / 4.);
+        let xk = (noise.rand() - 0.5) * ((args.len) / 8.);
+        yk = yk + (noise.rand() * 5.);
+        let lk = ((args.len) / 4.) + noise.rand() * (args.len / 4.);
         let mut j = -lk;
         while j < lk {
             let idx = pt_list.len() - 1;
@@ -1090,12 +1079,12 @@ impl Plan {
 * Mount planner
 */
 const SAMP: f64 = 0.03;
-fn mount_planner(app_state: &mut State, noise: &Noise, x_min: f64, x_max: f64) -> Vec<Plan> {
+fn mount_planner(app_state: &mut State, noise: &mut Noise, x_min: f64, x_max: f64) -> Vec<Plan> {
     fn loc_max(
-        noise: &Noise,
+        noise: &mut Noise,
         x: f64,
         y: f64,
-        f: fn(noise: &Noise, x: f64, y: f64) -> f64,
+        mut f: fn(&mut Noise, f64, f64) -> f64,
         r: f64,
     ) -> bool {
         let z0 = f(noise, x, y);
@@ -1143,7 +1132,7 @@ fn mount_planner(app_state: &mut State, noise: &Noise, x_min: f64, x_max: f64) -
     }
     let mut plans: Vec<Plan> = Vec::new();
 
-    let ns = |noise: &Noise, x: f64, _: f64| -> f64 {
+    let ns = |noise: &mut Noise, x: f64, _: f64| -> f64 {
         f64::max(noise.noise(x * SAMP, 0., 0.) - 0.55, 0.) * 2.
     };
 
@@ -1155,15 +1144,15 @@ fn mount_planner(app_state: &mut State, noise: &Noise, x_min: f64, x_max: f64) -
     //     f64::max(noise.noise(x * SAMP * 2., 2., 0.) - 0.55, 0.) * 2.
     // };
 
-    let yr = |x| noise.noise(x * 0.01, PI, 0.);
+    let yr = |noise: &mut Noise, x| noise.noise(x * 0.01, PI, 0.);
 
     let x_step = 5.;
     let m_wid = 200.;
     // original does this index by index we do a single rezie
     // line 3757
-    let i_x_min = f64::floor(x_min) as i32;
-    let i_x_max = f64::floor(x_max) as i32;
-    let i_step = x_step as i32;
+    // let i_x_min = f64::floor(x_min) as i32;
+    // let i_x_max = f64::floor(x_max) as i32;
+    // let i_step = x_step as i32;
     let mut i = x_min;
     while i < x_max {
         let i1 = f64::floor(i / x_step) as i32;
@@ -1181,9 +1170,9 @@ fn mount_planner(app_state: &mut State, noise: &Noise, x_min: f64, x_max: f64) -
     i = x_min;
     while i < x_max {
         let mut j = 0.;
-        while j < yr(i) * 480. {
+        while j < yr(noise, i) * 480. {
             if loc_max(noise, i, j, ns, 2.) {
-                let xof = i + 2. * (_rand() - 0.5) * 500.;
+                let xof = i + 2. * (noise.rand() - 0.5) * 500.;
                 let yof = j + 300.;
                 let r: Plan = Plan::new(Tag::Mount, xof, yof, ns(noise, i, j));
                 let res = chadd(&mut plans, r);
@@ -1214,7 +1203,8 @@ fn mount_planner(app_state: &mut State, noise: &Noise, x_min: f64, x_max: f64) -
         if f64::abs(i) % 1000. < x_step - 1. {
             // distmount is only added when i < 4
             println!("adding distmount");
-            let r = Plan::new(Tag::DistMount, i, 280. - _rand() * 50., ns(noise, i, j));
+            let r1 = noise.rand();
+            let r = Plan::new(Tag::DistMount, i, 280. - r1 * 50., ns(noise, i, j));
             chadd(&mut plans, r);
         }
 
@@ -1234,12 +1224,12 @@ fn mount_planner(app_state: &mut State, noise: &Noise, x_min: f64, x_max: f64) -
         //     );
         // } else 
         if app_state.plan_mtx[&idx] == 0 {
-            if _rand() < 0.01 {
+            if noise.rand() < 0.01 {
                 let mut j = 0.;
-                while j < (4. * _rand()) {
+                while j < (4. * noise.rand()) {
                     let r = Plan::new(
                         Tag::FlatMount,
-                        i + 2. * (_rand() - 0.5) * 700.,
+                        i + 2. * (noise.rand() - 0.5) * 700.,
                         700. - j * 50.,
                         ns(noise, i, j),
                     );
@@ -1257,8 +1247,8 @@ fn mount_planner(app_state: &mut State, noise: &Noise, x_min: f64, x_max: f64) -
 
     let mut i = x_min;
     while i < x_max {
-        if _rand() < 0.2 {
-            let r = Plan::new(Tag::Boat, i, 300. + _rand() * 390., 0.);
+        if noise.rand() < 0.2 {
+            let r = Plan::new(Tag::Boat, i, 300. + noise.rand() * 390., 0.);
             chadd_mind(&mut plans, r, 400.);
         }
         i = i + x_step;
@@ -1286,7 +1276,7 @@ impl State {
 
 // as opposed to creating and saving a 'chunk' like in the js version
 // load chunk returns a group that contains the svg for this section
-fn load_chunk(app_state: &mut State, noise_generator: &Noise, x_min: f64, x_max: f64) -> Group {
+fn load_chunk(app_state: &mut State, noise: &mut Noise, x_min: f64, x_max: f64) -> Group {
     let mut g = Group::new();
     while x_max > app_state.x_max - app_state.c_wid || x_min < app_state.x_min + app_state.c_wid {
         println!("Generating new chunk...",);
@@ -1295,7 +1285,7 @@ fn load_chunk(app_state: &mut State, noise_generator: &Noise, x_min: f64, x_max:
         if x_max > app_state.x_max - app_state.c_wid {
             plans = mount_planner(
                 app_state,
-                noise_generator,
+                noise,
                 app_state.x_max,
                 app_state.x_max + app_state.c_wid,
             );
@@ -1303,7 +1293,7 @@ fn load_chunk(app_state: &mut State, noise_generator: &Noise, x_min: f64, x_max:
         } else {
             plans = mount_planner(
                 app_state,
-                noise_generator,
+                noise,
                 app_state.x_min - app_state.c_wid,
                 app_state.x_min,
             );
@@ -1315,7 +1305,8 @@ fn load_chunk(app_state: &mut State, noise_generator: &Noise, x_min: f64, x_max:
             let p = &plans[i];
             println!("create svg for chunk {:?} {:?} {:?}", p.tag, p.x, p.y);
             if p.tag == Tag::Mount {
-                let svg_node = mountain(noise_generator, p.x, p.y, (i * 2) as f64 * _rand());
+                let r = noise.rand();
+                let svg_node = mountain(noise, p.x, p.y, (i * 2) as f64 * r);
                 // let w = water(noise_generator, p.x, p.y - 1000., WaterArgs::default());
                 g = g.add(svg_node)
                 // .add(w)
@@ -1343,7 +1334,7 @@ fn load_chunk(app_state: &mut State, noise_generator: &Noise, x_min: f64, x_max:
 
 pub fn gen_svg(draw_background: bool) -> Document {
     let mut app_state: State = State::new();
-    let noise_generator = Noise::new();
+    let mut noise = Noise::new();
     let resolution = 512.;
 
     let mut nodes = Group::new();
@@ -1352,9 +1343,9 @@ pub fn gen_svg(draw_background: bool) -> Document {
         let indexes = ((resolution / 2.) + 1.) as usize;
         for i in 0..indexes {
             for j in 0..indexes {
-                let rand_decr = _rand() * 255.;
+                let rand_decr = noise.rand() * 255.;
                 let c = (245.
-                    + noise_generator.noise(i as f64 * 0.1, j as f64 * 0.1 as f64, 0.) * 10.)
+                    + noise.noise(i as f64 * 0.1, j as f64 * 0.1 as f64, 0.) * 10.)
                     - rand_decr;
                 let r = c as u8;
                 let g = (c * 0.95) as u8;
@@ -1377,7 +1368,7 @@ pub fn gen_svg(draw_background: bool) -> Document {
         }
     }
 
-    nodes = nodes.add(load_chunk(&mut app_state, &noise_generator, 0., 256.));
+    nodes = nodes.add(load_chunk(&mut app_state, &mut noise, 0., 256.));
     Document::new()
         .set("viewbox", (0., 0., resolution, resolution))
         .set("style", "mix-blend-mode:multiply")
