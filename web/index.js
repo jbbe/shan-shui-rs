@@ -23,6 +23,40 @@ function reset() {
     container.removeChild(container.lastChild);
   }
 }
+function download() {
+  const svgContainer = document.getElementById("svg-container");
+  for (let i = 0; i < svgContainer.childElementCount; i++) {
+    console.log("Downloading...", i)
+    const svg = svgContainer.children[i];
+    const d = new Date().toTimeString().substring(0,5);
+    const el = document.createElement("a");
+    // let img = new Image(),
+    //     serializer = new XMLSerializer(),
+    //     svgStr = serializer.serializeToString(svg);
+
+    // img.src = 'data:image/svg+xml;base64,'+window.btoa(svgStr);
+
+    // You could also use the actual string without base64 encoding it:
+    //img.src = "data:image/svg+xml;utf8," + svgStr;
+
+    // var canvas = document.createElement("canvas");
+
+    // canvas.width = 512;
+    // canvas.height = 512;
+    // canvas.getContext("2d").drawImage(img,0,0,512,512);
+
+    // var imgURL = canvas.toDataURL("image/png");
+    // element.href = imgURL;
+    // element.setAttribute("href", "data:text/play;charset=utf8" + svg.innerHTML);
+    el.setAttribute("href", "data:text/plain;charset=utf8," + encodeURIComponent(svg.innerHTML));
+    el.setAttribute("download", `shan-shui-${d.substring(0, 6)}-${i}.svg`);
+    el.style.display = "none";
+    document.body.appendChild(el);
+    el.click();
+    document.body.removeChild(el);
+  }
+
+}
 
 window.onload = () => {
   rust.then((m) => {
@@ -48,6 +82,9 @@ window.onload = () => {
       
       const mount = document.getElementById("mount");
       mount.onclick = () => getChunk("/mount");
+      
+      const downloadButton = document.getElementById("download");
+      downloadButton.onclick = () => download();
 
       const seedInput = document.getElementById("seed");
       seedInput.onchange = ((e) => {

@@ -1,6 +1,6 @@
-use svg::node::element::{Group, Polyline, Rectangle};
-use super::point::*;
 use super::noise::Noise;
+use super::point::*;
+use svg::node::element::{Group, Polyline, Rectangle};
 
 const PI: f64 = std::f64::consts::PI;
 
@@ -37,8 +37,8 @@ impl PolyArgs {
         Self {
             x_off: 0.,
             y_off: 0.,
-            fil: color_a(0, 0, 0, 0.,),
-            stroke: color_a(0, 0, 0, 0.,),
+            fil: color_a(0, 0, 0, 0.),
+            stroke: color_a(0, 0, 0, 0.),
             width: 0.,
         }
     }
@@ -157,14 +157,14 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
     let vtx_list = stroke_zip(&pt_list, &mut vtx_list0, &mut vtx_list1);
 
     Some(poly(
-        &vtx_list, 
-        PolyArgs { 
+        &vtx_list,
+        PolyArgs {
             x_off: args.x_off,
             y_off: args.y_off,
             fil: args.col.clone().to_string(),
             stroke: args.col.clone().to_string(),
-            width: args.out ,
-        }
+            width: args.out,
+        },
     ))
 }
 
@@ -215,9 +215,9 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
         ns_list.push(noise.noise(i as f64 * 0.05, n0, 0.));
     }
 
-    // ns_list = 
+    // ns_list =
     noise.loop_noise(&mut ns_list);
-    
+
     let mut p_list = Vec::new();
     let la_len = la_list.len();
     for i in 0..la_len {
@@ -227,13 +227,14 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
         p_list.push(Point { x: nx, y: ny });
     }
 
-    poly(&p_list, PolyArgs {
-        fil: args.col.clone(),
-        stroke: args.col,
-        width: 0.,
-        ..PolyArgs::default()
-    }
-        // 0., 0., args.col.clone(), args.col, 0.
+    poly(
+        &p_list,
+        PolyArgs {
+            fil: args.col.clone(),
+            stroke: args.col,
+            width: 0.,
+            ..PolyArgs::default()
+        }, // 0., 0., args.col.clone(), args.col, 0.
     )
 }
 #[allow(dead_code)]
@@ -244,7 +245,7 @@ pub struct TextureArgs {
     pub width: f64,
     pub len: f64,
     pub sha: f64,
-    pub col: String,
+    pub col: Option<String>,
     pub noi: fn(f64) -> f64,
     pub dis: fn(&mut Noise) -> f64,
 }
@@ -257,7 +258,7 @@ impl TextureArgs {
             len: 0.2,
             width: 1.5,
             sha: 0.,
-            col: color_a(200, 200, 200, 0.9),
+            col: None,
             noi: |x| 30. / x,
             dis: |noise: &mut Noise| {
                 if noise.rand() <= 0.5 {
@@ -272,6 +273,11 @@ impl TextureArgs {
 pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) -> Group {
     let reso = [pt_list.len(), pt_list[0].len()];
     let reso_f = [pt_list.len() as f64, pt_list[0].len() as f64];
+    let col = if args.col.is_none() {
+        color_a(200, 200, 200, 0.9)
+    } else {
+        args.col.unwrap()
+    };
     let mut tex_list: Vec<Vec<Point>> = Vec::new();
 
     let dis = |noise: &mut Noise| {

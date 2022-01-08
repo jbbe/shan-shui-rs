@@ -244,13 +244,14 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
                     y: p.y + y_off,
                 })
                 .collect::<Vec<_>>();
+            let r1 = noise.rand();
             g = g.add(
                 stroke(
                     noise,
                     &stroke_pts,
                     StrokeArgs {
-                        // col: color_a(100, 100, 100, 0.1 +(_rand() * 0.1)),
-                        col: green(),
+                        col: color_a(100, 100, 100, 0.1 +(r1 * 0.1)),
+                        // col: green(),
                         width: 1.,
                         ..StrokeArgs::default()
                     },
@@ -282,7 +283,7 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
         let mut veg_list: Vec<Point> = Vec::new();
         let mut g = Group::new();
         // might be error in original impl here he uses len straightI
-        /*
+        // /*
         let i_lim = pt_list.len() - 1;
         for i in 0..i_lim {
             // same possibl error as above
@@ -311,21 +312,19 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
                 }
             }
         }
-        */
+        // */
         g
     }
 
     let height = args.height;
     let width = args.width;
     // let tex = 200.;
-    let veg = args.veg;
 
     let mut pt_list: Vec<Vec<Point>> = Vec::new();
     let reso = [10, 50];
     let mut hoff = 0.;
 
     let mut group = Group::new();
-    // let g = usvg::Node<usvg::NodeKind::Group>;
     for j in 0..reso[0] {
         hoff += (noise.rand() * y_off) / 100.;
         pt_list.push(Vec::new());
@@ -343,35 +342,35 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
     }
     // fn tree_func
     // Rim
-    // group = group.add(vegetate(
-    //     noise,
-    //     &pt_list,
-    //     x_off,
-    //     y_off,
-    //     seed,
-    //     height,
-    //     |noise, x, y, x_off, y_off, _| {
-    //         tree01(
-    //             noise,
-    //             x + x_off,
-    //             y + y_off - 5.,
-    //             TreeArgs {
-    //                 col: color_a(
-    //                     100,
-    //                     100,
-    //                     100,
-    //                     noise.noise(0.01 * x, 0.01 * y, 0.) * 0.5 * 0.3 + 0.5,
-    //                 ),
-    //                 ..default_tree1_args()
-    //             },
-    //         )
-    //     },
-    //     |noise, pt_list, i, j, seed, h| {
-    //         let ns = noise.noise(j as f64 * 0.1, seed, 0.);
-    //         i == 0 && ns * ns * ns < 0.1 && f64::abs(pt_list[i][j].y) / h > 0.2
-    //     },
-    //     |_veg_list, _i| true,
-    // ));
+    group = group.add(vegetate(
+        noise,
+        &pt_list,
+        x_off,
+        y_off,
+        seed,
+        height,
+        |noise, x, y, x_off, y_off, _| {
+            tree01(
+                noise,
+                x + x_off,
+                y + y_off - 5.,
+                TreeArgs {
+                    col: color_a(
+                        100,
+                        100,
+                        100,
+                        noise.noise(0.01 * x, 0.01 * y, 0.) * 0.5 * 0.3 + 0.5,
+                    ),
+                    ..default_tree1_args()
+                },
+            )
+        },
+        |noise, pt_list, i, j, seed, h| {
+            let ns = noise.noise(j as f64 * 0.1, seed, 0.);
+            i == 0 && ns * ns * ns < 0.1 && f64::abs(pt_list[i][j].y) / h > 0.2
+        },
+        |_veg_list, _i| true,
+    ));
 
     // White background
     let mut white_pg_pts = pt_list[0].clone();
@@ -404,8 +403,8 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
                 noise,
                 &outline_pts,
                 StrokeArgs {
-                    // col: color_a(100, 100, 100, 0.3),
-                    col: blue(),
+                    col: color_a(100, 100, 100, 0.3),
+                    // col: blue(),
                     noi: 1.,
                     width: 3.,
                     ..StrokeArgs::default()
@@ -423,7 +422,7 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
     // texture
     let arr = [0., 0., 0., 0., 5.];
     let sha = noise.rand_choice_arrf(&arr);
-    let col = color(100, 0, 0); // texture is red
+
     group = group.add(texture(
         noise,
         &pt_list,
@@ -432,7 +431,7 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
             y_off,
             tex: 200,
             sha,
-            col,
+            col: args.col,
             ..TextureArgs::default()
         },
     ));
@@ -468,7 +467,7 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
         },
         |_veg_list, _i| true,
     ));
-    if veg {
+    if args.veg {
         // middle
         group = group.add(vegetate(
             noise,
@@ -979,23 +978,20 @@ fn load_chunk(app_state: &mut State, noise: &mut Noise, x_min: f64, x_max: f64) 
                 let seed = (i * 2 ) as f64 * noise.rand();
                 let args = MountainArgs::default(noise);
                 let svg_node = mountain(noise, p.x, p.y, seed, args);
-                // let w = water(noise, p.x, p.y - 1000., WaterArgs::default());
+                let w = water(noise, p.x, p.y - 1000., WaterArgs::default());
                 g = g.add(svg_node)
-                // .add(w)
+                .add(w)
                 ;
             } else if p.tag == Tag::FlatMount {
                 // g = g.add()
             } else if p.tag == Tag::DistMount {
             } else if p.tag == Tag::Boat {
-                // let b = boat01(p.x, p.y, BoatArgs {
-                //     scale: p.y / 800.,
-                //     fli: rand_bool(),
-                //     ..BoatArgs::default()
-                // });
-                // g = g.add(b);
-                // if(b.)
-                // g = g.add(
-                // );
+                let args = BoatArgs {
+                    scale: p.y / 800.,
+                    fli: noise.rand_bool(),
+                    ..BoatArgs::default()
+                };
+                g = g.add(boat01(noise,p.x, p.y, args));
             } else if p.tag == Tag::RedCircle {
             } else if p.tag == Tag::GreenCircle {
             }
@@ -1093,9 +1089,7 @@ impl Painting {
         Document::new()
             .set("viewbox", (0., 0., resolution, resolution))
             .set("style", "mix-blend-mode:multiply")
-            .add(mountain(&mut self.noise, 100., 100., seed, args))
+            .add(mountain(&mut self.noise, 10., 300., seed, args))
             .to_string()
     }
 }
-
-
