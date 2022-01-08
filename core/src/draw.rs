@@ -24,22 +24,35 @@ pub fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
     format!("rgb({},{},{},{})", r, g, b, a)
 }
 
-pub fn poly(
-    p_list: &Vec<Point>,
-    x_off: f64,
-    y_off: f64,
-    fill: String,
-    stroke: String,
-    width: f64,
-) -> Path {
+pub struct PolyArgs {
+    pub x_off: f64,
+    pub y_off: f64,
+    pub fil: String,
+    pub stroke: String,
+    pub width: f64,
+}
+
+impl PolyArgs {
+    pub fn default() -> Self {
+        Self {
+            x_off: 0.,
+            y_off: 0.,
+            fil: color_a(0, 0, 0, 0.,),
+            stroke: color_a(0, 0, 0, 0.,),
+            width: 0.,
+        }
+    }
+}
+
+pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> Path {
     let mut data = svg::node::element::path::Data::new();
     // let mut path_data = Rc::new(usvg::PathData::new());
     let p_count = p_list.len();
     // let points = p_list.map
     // let p_data_vec = Vec::new
     for i in 0..p_count {
-        let x = p_list[i].x + x_off;
-        let y = p_list[i].y + y_off;
+        let x = p_list[i].x + args.x_off;
+        let y = p_list[i].y + args.y_off;
         if i == 0 {
             data = data.move_to((x, y));
         } else {
@@ -50,9 +63,9 @@ pub fn poly(
     // usvg::Path::()
     Path::new()
         .set("fill", "none")
-        .set("fill", fill)
-        .set("stroke", stroke)
-        .set("stroke-width", width)
+        .set("fill", args.fil)
+        .set("stroke", args.stroke)
+        .set("stroke-width", args.width)
         .set("d", data)
 }
 
@@ -141,12 +154,14 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
     let vtx_list = stroke_zip(&pt_list, &mut vtx_list0, &mut vtx_list1);
 
     Some(poly(
-        &vtx_list,
-        args.x_off,
-        args.y_off,
-        args.col.clone().to_string(),
-        args.col.clone(),
-        args.out,
+        &vtx_list, 
+        PolyArgs { 
+            x_off: args.x_off,
+            y_off: args.y_off,
+            fil: args.col.clone().to_string(),
+            stroke: args.col.clone().to_string(),
+            width: args.out ,
+        }
     ))
 }
 
@@ -209,7 +224,14 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Path {
         p_list.push(Point { x: nx, y: ny });
     }
 
-    poly(&p_list, 0., 0., args.col.clone(), args.col, 0.)
+    poly(&p_list, PolyArgs {
+        fil: args.col.clone(),
+        stroke: args.col,
+        width: 0.,
+        ..PolyArgs::default()
+    }
+        // 0., 0., args.col.clone(), args.col, 0.
+    )
 }
 #[allow(dead_code)]
 pub struct TextureArgs {

@@ -85,13 +85,25 @@ fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
     g = g
         .add(poly(
             &line1,
-            0.,
-            0.,
-            "none".to_string(),
-            args.col.clone(),
-            1.5,
+            PolyArgs {
+                fil: "none".to_string(),
+                stroke: args.col.clone(),
+                width: 1.5,
+                ..PolyArgs::default()
+            }
+            // 0.,
+            // 0.,
+            // "none".to_string(),
+            // args.col.clone(),
+            // 1.5,
         ))
-        .add(poly(&line2, 0., 0., "none".to_string(), args.col, 1.5));
+        .add(poly(&line2, PolyArgs {
+            fil: "none".to_string(), 
+            stroke: args.col,
+            width: 1.5,
+            ..PolyArgs::default()
+        }
+    ));
     g
 }
 
@@ -213,11 +225,13 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
         for i in 0..f_len {
             g = g.add(poly(
                 &ft_list[i],
-                x_off,
-                y_off,
-                "white".to_string(),
-                "none".to_string(),
-                0.,
+                PolyArgs {
+                    x_off,
+                    y_off,
+                    fil: "white".to_string(),
+                    stroke: "none".to_string(),
+                    width: 0.,
+                }
             ));
         }
         for j in 0..f_len {
@@ -365,11 +379,14 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
     // println!("poly pts{:?}", poly_pts );
     let white_bg = poly(
         &white_pg_pts,
-        x_off,
-        y_off,
-        "white".to_string(),
-        "none".to_string(),
-        0.,
+        PolyArgs {
+            x_off,
+            y_off,
+            fil: "white".to_string(),
+            stroke: "none".to_string(),
+            width: 0.,
+
+        }
     );
     group = group.add(white_bg);
 
@@ -578,13 +595,13 @@ impl Man {
         ]);
         let pts = Man::tran_poly(p0, p1, &arr);
 
-        poly(
-            &pts,
-            0.,
-            0.,
-            color_a(100, 100, 100, 0.8),
-            color_a(100, 100, 100, 0.8),
-            0.,
+        poly(&pts,
+            PolyArgs {
+                fil: color_a(100, 100, 100, 0.8),
+                stroke: color_a(100, 100, 100, 0.8),
+                ..PolyArgs::default()
+
+            }
         )
     }
 
