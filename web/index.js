@@ -26,11 +26,15 @@ function reset() {
 window.onload = () => {
   rust.then((m) => {
     try {
-      // m.start();
-      let img = m.draw_background();
-
-      document.getElementsByTagName("body")[0].style.backgroundImage =
+      // m.start();a
+      function drawBackground(seed) {
+        console.log("drawing background", seed)
+        document.getElementsByTagName("body")[0].style.backgroundImage = ""
+        let img = m.draw_background(seed);
+        document.getElementsByTagName("body")[0].style.backgroundImage =
         "url(" + img + ")";
+      }
+      drawBackground(Math.random());
 
       const refreshButton = document.getElementById("refresh");
       refreshButton.onclick = getChunk;
@@ -38,8 +42,12 @@ window.onload = () => {
       const resetButton = document.getElementById("reset");
       resetButton.onclick = reset;
 
-      // const seedInput = document.getElementById("seed");
-      // seedInput.onchange = ((e) => {});
+      const seedInput = document.getElementById("seed");
+      seedInput.onchange = ((e) => {
+        let seed = parseFloat(e.target.value);
+        console.log("seed", seed)
+        // m.draw_background(seed);
+      });
       getChunk();
     } catch (e) {
       console.error("start didn't work", e);

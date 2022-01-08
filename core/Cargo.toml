@@ -9,7 +9,6 @@ debug = true
 
 [dependencies]
 base64 = "0.13.0"
-rand = "0.8.4"
 resvg = "0.19.0"
 tiny-skia = "0.6.1"
 usvg = "0.19.0"

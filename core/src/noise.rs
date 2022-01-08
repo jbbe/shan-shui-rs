@@ -2,7 +2,7 @@
 * Perlin Noise
 */
 const PERLIN_SIZE: usize = 4096;
-const PERLIN_LAST: usize = 4094;
+const PERLIN_LAST: i32 = 4094;
 
 const PI: f64 = std::f64::consts::PI;
 // const PERLIN_ARRAY_SIZE: usize = 4096;
@@ -13,10 +13,10 @@ pub struct Noise {
     prng: Prng,
 }
 
-const PERLIN_YWRAPB: usize = 4;
-const PERLIN_YWRAP: usize = 1 << PERLIN_YWRAPB;
-const PERLIN_ZWRAPB: usize = 8;
-const PERLIN_ZWRAP: usize = 1 << PERLIN_ZWRAPB;
+const PERLIN_YWRAPB: i32 = 4;
+const PERLIN_YWRAP: i32 = 1 << PERLIN_YWRAPB;
+const PERLIN_ZWRAPB: i32 = 8;
+const PERLIN_ZWRAP: i32 = 1 << PERLIN_ZWRAPB;
 
 /** Source
  * https://raw.githubusercontent.com/processing/p5.js/master/src/math/noise.js
@@ -82,11 +82,13 @@ impl Noise {
         let _y = if y < 0.0 { 0. - y } else { y };
         let _z = if z < 0.0 { 0. - z } else { z };
 
-        let mut xi = _x as usize;
+        // all bitwise operations in js are done by converting f64 (technically
+        // 58) to i32 so that's what we try to do here
+        let mut xi = _x as i32;
         // let yi = f64::floor(y);
-        let mut yi = _y as u64;
+        let mut yi = _y as i32;
         // let zi = f64::floor(z);
-        let mut zi = _z as i64;
+        let mut zi = _z as i32;
         let mut xf = _x - f64::floor(_x);
         let mut yf = _y - f64::floor(_y);
         let mut zf = _z - f64::floor(_z);
@@ -96,22 +98,25 @@ impl Noise {
         let mut n2: f64;
         let mut n3: f64;
 
-        let mut o = 0;
-        while o < self.perlin_octaves {
+        // let mut o = 0;
+        for _ in 0..self.perlin_octaves {
+            let shif_yi = yi << PERLIN_YWRAPB;
+            let shif_zi = zi << PERLIN_ZWRAPB;
             // let of = xi + (yi << PERLIN_YWRAPB) + (zi << PERLIN_ZWRAPB);
-            let mut of = xi;
+            let mut of = xi + shif_yi + shif_zi ;
             let rxf = Noise::scaled_cosine(xf);
             let ryf = Noise::scaled_cosine(yf);
-            n1 = self.perlin[of & PERLIN_LAST];
-            n1 += rxf * (self.perlin[(of + 1) & PERLIN_LAST] - n1);
-            n2 = self.perlin[(of + PERLIN_YWRAP) & PERLIN_LAST];
-            n2 += rxf * (self.perlin[(of + PERLIN_YWRAP + 1) & PERLIN_LAST] - n2);
+            // let of_prl_last = 
+            n1 = self.perlin[(of & PERLIN_LAST) as usize];
+            n1 += rxf * (self.perlin[((of + 1) & PERLIN_LAST) as usize] - n1);
+            n2 = self.perlin[((of + PERLIN_YWRAP) & PERLIN_LAST) as usize];
+            n2 += rxf * (self.perlin[((of + PERLIN_YWRAP + 1) & PERLIN_LAST) as usize] - n2);
             n1 += ryf * (n2 - n1);
             of += PERLIN_ZWRAP;
-            n2 = self.perlin[of & PERLIN_LAST];
-            n2 += rxf * (self.perlin[(of + 1) & PERLIN_LAST] - n2);
-            n3 = self.perlin[(of + PERLIN_YWRAP) & PERLIN_LAST];
-            n3 += rxf * (self.perlin[(of + PERLIN_YWRAP + 1) & PERLIN_LAST] - n3);
+            n2 = self.perlin[(of & PERLIN_LAST) as usize];
+            n2 += rxf * (self.perlin[((of + 1) & PERLIN_LAST) as usize] - n2);
+            n3 = self.perlin[((of + PERLIN_YWRAP) & PERLIN_LAST) as usize];
+            n3 += rxf * (self.perlin[((of + PERLIN_YWRAP + 1) & PERLIN_LAST) as usize] - n3);
             n2 += ryf * (n3 - n2);
             n1 += Noise::scaled_cosine(zf) * (n2 - n1);
             r += n1 * ampl;
@@ -123,19 +128,17 @@ impl Noise {
             zi = zi << 1;
             zf = zf * 2.;
             if xf >= 1.0 {
-                xi = xi + 1;
-                xf = xf - 1.;
+                xi += 1;
+                xf -= 1.;
             }
             if yf >= 1.0 {
-                yi = yi + 1;
-                yf = yf - 1.;
+                yi += 1;
+                yf-= 1.;
             }
             if zf >= 1.0 {
-                zi = zi + 1;
-                zf = zf - 1.;
+                zi += 1;
+                zf -= 1.;
             }
-            // increment for loop
-            o = o + 1;
         }
         r
     }

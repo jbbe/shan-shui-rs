@@ -49,7 +49,7 @@ pub fn start() {
 }
 
 #[wasm_bindgen]
-pub fn draw_background() -> String {
+pub fn draw_background(seed: f64) -> String {
     console_error_panic_hook::set_once();
     let document = window().unwrap().document().unwrap();
     let canvas= document
@@ -65,9 +65,9 @@ pub fn draw_background() -> String {
         .unwrap()
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
-    let mut noise = shan_shui::Noise::new(777.);
-    let perlins = noise.perlins();
-    log(&format!("Perlins {:?}", perlins).to_string());
+    let mut noise = shan_shui::Noise::new(seed);
+    // let perlins = noise.perlins();
+    // log(&format!("Perlins {:?}", perlins).to_string());
     let resolution = 512.;
     let indexes = ((resolution / 2.) + 1.) as usize;
     for i in 0..indexes {
