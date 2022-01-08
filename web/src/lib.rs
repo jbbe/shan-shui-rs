@@ -33,7 +33,7 @@ extern "C" {
 pub fn start() {
     console_error_panic_hook::set_once();
 
-    let svg_str = shan_shui::svg_string(false);
+    let svg_str = shan_shui::svg_string(200.);
     log("shan shui generated");
     let document = window().unwrap().document().unwrap();
     let body = document.body().unwrap();
@@ -65,12 +65,14 @@ pub fn draw_background() -> String {
         .unwrap()
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
-    let noise = shan_shui::Noise::new();
+    let mut noise = shan_shui::Noise::new(777.);
+    let perlins = noise.perlins();
+    log(&format!("Perlins {:?}", perlins).to_string());
     let resolution = 512.;
     let indexes = ((resolution / 2.) + 1.) as usize;
     for i in 0..indexes {
         for j in 0..indexes {
-            let rand_decr = rand::random::<f64>() * 255.;
+            let rand_decr = noise.rand() * 255.;
             let c = (245. + noise.noise(i as f64 * 0.1,j as f64 * 0.1 as f64, 0.) * 10.) - rand_decr;
             let r = c as u8;
             let g  = (c * 0.95) as u8;

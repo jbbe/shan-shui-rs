@@ -1332,9 +1332,9 @@ fn load_chunk(app_state: &mut State, noise: &mut Noise, x_min: f64, x_max: f64) 
     g
 }
 
-pub fn gen_svg(draw_background: bool) -> Document {
+pub fn gen_svg(seed: f64, draw_background: bool) -> Document {
     let mut app_state: State = State::new();
-    let mut noise = Noise::new();
+    let mut noise = Noise::new(seed);
     let resolution = 512.;
 
     let mut nodes = Group::new();
@@ -1375,8 +1375,8 @@ pub fn gen_svg(draw_background: bool) -> Document {
         .add(nodes)
 }
 
-pub fn svg_string(draw_background: bool) -> String {
-    gen_svg(draw_background).to_string()
+pub fn svg_string(seed: f64) -> String {
+    gen_svg(seed, false).to_string()
 }
 
 pub fn write_svg(svg_file: &str, doc: &Document) {
@@ -1389,14 +1389,15 @@ pub struct Painting {
 }
 
 impl Painting {
-    pub fn new() -> Self {
+    pub fn new(seed: f64) -> Self {
         Self {
             state: State::new(),
-            noise: Noise::new(),
+            noise: Noise::new(seed),
         }
     }
 
     pub fn write_svg(&mut self, width: f64, _height: f64) -> String {
+        println!("Perlins {:?}", self.noise.perlins());
         let resolution = 512.;
         Document::new()
             .set("viewbox", (0., 0., resolution, resolution))

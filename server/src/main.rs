@@ -7,10 +7,12 @@ fn main() {
     // let shan_shui = 
     server.utilize(nickel_cors::enable_cors);
     server.utilize(router! {
-        get "**" => |_req, mut res| {
+        get "/:seed" => |req, mut res| {
             res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
             res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
-            let mut painting = shan_shui::Painting::new();
+            let seed_str = req.param("seed").unwrap();
+            let seed = seed_str.parse::<f64>().unwrap();
+            let mut painting = shan_shui::Painting::new(seed);
             // let id = rand::random::<i32>();
             // sessions = sessions.insert(id, painting);
             // shan_shui::svg_string(false)

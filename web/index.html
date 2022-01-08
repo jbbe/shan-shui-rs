@@ -13,23 +13,15 @@
             display: grid;
             place-content: center;
         }
-        /* #canvas {
-            height: 512px;
-            width: 512px;
-            position: absolute;
-            left: 100px;
-            top: 40px;
-            z-index: 2;
-        } */
+
         #svg-container {
             height: 512px;
-            /* width: 512px; */
             width: 90vw;
             overflow-x: scroll;
             overflow-y: hidden;
             display: flex;
             position: absolute;
-            left: 100px;
+            left: 160px;
             top: 40px;
             z-index: 4;
         }
@@ -53,16 +45,19 @@
         button:hover {
             background: #fff;
         }
-        /* #refresh {
-        } */
+        input {
+            background: #bebebebe;
+            border: none;
+            width:150px;
+        }
     </style>
 </head>
 <body >
     <div id="button-container">
         <button id="refresh">add</button>
         <button id="reset">reset</button>
+        <input value="77777" id="seed" type="number">
     </div>
-    <!-- <canvas id="canvas"></canvas> -->
     <div id="svg-container"></div>
     <canvas style="display:none" id="bg-canvas"></canvas>
 </body>

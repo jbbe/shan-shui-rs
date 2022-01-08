@@ -53,10 +53,11 @@ impl Noise {
         0.5 * (1. - f64::cos(i * PI))
     }
 
-    pub fn new() -> Self {
+    pub fn new(seed: f64) -> Self {
         let mut perlin = [0.0; PERLIN_SIZE];
         let mut prng = Prng::new();
-        prng.seed_t();
+        prng.seed(seed);
+        // prng.seed_t();
 
         for i in 0..PERLIN_SIZE {
             perlin[i] = prng.rand();
@@ -68,6 +69,12 @@ impl Noise {
             perlin,
             prng,
         }
+    }
+
+    pub fn set_seed(&mut self, x: f64) {
+        let mut prng = Prng::new();
+        prng.seed(x);
+        std::mem::swap(&mut self.prng, &mut prng);
     }
 
     pub fn noise(&self, x: f64, y: f64, z: f64) -> f64 {
@@ -131,6 +138,10 @@ impl Noise {
             o = o + 1;
         }
         r
+    }
+
+    pub fn perlins(&self) -> [f64; PERLIN_SIZE] {
+        self.perlin
     }
 
     pub fn rand(&mut self) -> f64 {
@@ -219,14 +230,15 @@ impl Prng {
         Self { s: 1234, p, q, m }
     }
 
-    pub fn seed_t(&mut self) {
-        let x = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("Tim went backwards")
-            .as_secs_f64();
-        self.seed(x);
-        ()
-    }
+    // pub fn seed_t(&mut self) {
+    //     let x = wasm_timer::Instant::now()
+    //     // let x = std::time::SystemTime::now()
+    //         .duration_since(wasm::timer::Instant::new(wasm_timer::UNIX_EPOCH))
+    //         // .expect("Tim went backwards")
+    //         .as_secs_f64();
+    //     self.seed(x);
+    //     ()
+    // }
 
     pub fn seed(&mut self, x: f64) {
         let mut y = 0;
@@ -303,7 +315,7 @@ fn rand_is_normal() {
 #[test]
 
 fn test_noise() {
-    let noise = Noise::new();
+    let noise = Noise::new(777777.938);
     for i in 0..200 {
         let iflo = i as f64;
         let v = noise.noise(iflo, iflo, iflo);
