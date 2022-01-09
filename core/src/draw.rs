@@ -22,6 +22,15 @@ pub fn green() -> String {
     color(0, 0, 255)
 }
 
+pub fn white() -> String {
+    "white".to_string()
+    // color(255, 255, 255)
+}
+
+pub fn none_str() -> String {
+    "none".to_string()
+}
+
 pub fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
     format!("rgb({},{},{},{})", r, g, b, a)
 }
@@ -244,8 +253,8 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
 */
 pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
     let tl = p_list.len() - 1 * (reso as usize);
-    let mut lx = 0.;
-    let mut ly = 0.;
+    // let mut lx = 0.;
+    // let mut ly = 0.;
     let mut r_list = VecDeque::new();
     r_list.reserve(p_list.len());
 
@@ -258,10 +267,10 @@ pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
         let nx = last_p.x * (1. - p) + next_p.x * p;
         let ny = last_p.y * (1. - p) + next_p.y * p;
 
-        let ang = f64::atan2(ny - ly, nx -lx);
+        // let ang = f64::atan2(ny - ly, nx -lx);
         r_list.push_back(Point { x: nx, y: ny });
-        lx = nx;
-        ly = ny;
+        // lx = nx;
+        // ly = ny;
     }
 
     if p_list.len() > 0 {
@@ -279,7 +288,7 @@ pub struct TextureArgs {
     pub width: f64,
     pub len: f64,
     pub sha: f64,
-    pub col: Option<String>,
+    pub col: fn(&mut Noise, f64) -> String,
     pub noi: fn(f64) -> f64,
     pub dis: fn(&mut Noise) -> f64,
 }
@@ -292,7 +301,9 @@ impl TextureArgs {
             len: 0.2,
             width: 1.5,
             sha: 0.,
-            col: None,
+            col: |n, _| {
+                color_a(180, 180, 180, 0.3 + (n.rand() * 0.3))
+            },
             noi: |x| 30. / x,
             dis: |noise: &mut Noise| {
                 if noise.rand() <= 0.5 {
@@ -304,23 +315,14 @@ impl TextureArgs {
         }
     }
 }
+
 pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) -> Group {
     let reso = [pt_list.len(), pt_list[0].len()];
     let reso_f = [pt_list.len() as f64, pt_list[0].len() as f64];
-    let col = if args.col.is_none() {
-        color_a(200, 200, 200, 0.9)
-    } else {
-        args.col.unwrap()
-    };
+    let col = args.col;
     let mut tex_list: Vec<Vec<Point>> = Vec::new();
 
-    let dis = |noise: &mut Noise| {
-        if noise.rand() <= 0.5 {
-            (1. / 3.) * noise.rand()
-        } else {
-            (2. / 3.) + (1. / 3.) * noise.rand() // ??? orignal make so sense beyond just being rand
-        }
-    };
+    let dis = args.dis;
     for i in 0..args.tex {
         let mid = ((dis(noise)) * reso[1] as f64) as i32 | 0;
         let h_len = f64::floor(noise.rand() * (reso[1] as f64 * args.len)) as i32;
@@ -347,8 +349,8 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
                 x: x + ns0,
                 y: y + ns1,
             });
-        }
-    }
+        } // j
+    } // i
 
     let t_len = tex_list.len();
     let mut g = Group::new();
@@ -387,17 +389,19 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
                 y: p.y + args.y_off,
             })
             .collect();
+        let args = StrokeArgs {
+                width: args.width,
+                col: col(noise, j as f64 / t_len as f64),
+                ..StrokeArgs::default()
+        };
         let s = stroke(
             noise,
             &pts,
-            StrokeArgs {
-                width: args.width,
-                col: color_a(100, 100, 100, j as f64 / t_len as f64),
-                ..StrokeArgs::default()
-            },
+            args
         );
-        if !s.is_none() {
-            g = g.add(s.unwrap());
+        match s {
+            Some(s) =>  { g = g.add(s) }
+            None => {}
         }
     }
     g

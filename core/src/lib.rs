@@ -435,7 +435,7 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
             y_off,
             tex: 200,
             sha,
-            col: args.col,
+            // col: args.col,
             ..TextureArgs::default()
         },
     ));
@@ -702,7 +702,7 @@ fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs) ->
 
     if gr_list.len() > 0 {
         let bnd = bound(gr_list);
-        // g = g.add(flat_dec(noise, x_off, y_off, bnd));
+        g = g.add(flat_dec(noise, x_off, y_off, bnd));
         // g - g.add()
     }
     // fn bound(p_list: Vec<Point>) -> 
@@ -739,7 +739,7 @@ fn bound(p_list: Vec<Point>) -> Bound {
 }
 
 
-fn flatDec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> Group{
+fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> Group {
     let mut g = Group::new();
 
     let tt = noise.rand_choice_arr(&[0, 0, 1, 3, 3, 4]);
@@ -900,11 +900,90 @@ fn flatDec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> Group{
     }
     g
 }
+struct DistMountArgs {
+    height: f64,
+    len: f64,
+    seg: f64,
+}
+impl DistMountArgs {
+    pub fn default() -> Self {
+        Self {
+            height: 300.,
+            len: 2000.,
+            seg: 5.,
+        }
+    }
+}
+fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: DistMountArgs) -> Group {
+    let mut g = Group::new();
+    let span = 10.;
+
+    let mut pt_list = Vec::new();
+    let lim = (args.len / span / args.seg) as usize;
+    for i in 0..lim {
+        let i_f = i as f64;
+        let capacity = (args.seg + 1. + (args.seg /2.)+ 1. + (args.seg /2.) + 1.) as usize;
+        pt_list.push(VecDeque::with_capacity(capacity));
+        for j in 0..(args.seg as usize + 1) {
+            let tran = |noise: &mut Noise, k: f64| {
+                Point {
+                    x: x_off + k * span,
+                    y: y_off - args.height * noise.noise(k as f64 * 0.05, seed, 0.) *
+                        f64::powf(f64::sin(PI * k) / (args.len / span), 0.5)
+                }
+            };
+            let pt_last = pt_list.len() - 1;
+            pt_list[pt_last].push_back(tran(noise, i_f * args.seg * j as f64 * 2.))
+            // let t = polytools.triangulate(pt_list[i])
+        }
+
+        for j in 0..((args.seg  / 2.) as usize + 1) {
+            let tran = |noise: &mut Noise, k: f64| {
+                Point {
+                    x: x_off + k * span,
+                    y: y_off + 24. * noise.noise(k * 0.05, 2., seed) *
+                        f64::powf(f64::sin(PI * k) / (args.len / span), 1.)
+                }
+            };
+            let pt_last = pt_list.len() - 1;
+            pt_list[pt_last].push_front(tran(noise, i_f * args.seg + j as f64 * 2.));
+        }
+    }
+
+    
+    for i in 0..(pt_list.len()) {
+        let get_col = |n: &mut Noise, x, y| {
+            let c= (n.noise(x * 0.02, y * 0.02, y_off) * 55. + 200.) as u8 | 0;
+            color(c, c, c)
+        };
+        let p = pt_list[i][pt_list[i].len() - 1];
+        // let p_v = &pt_list[i];
+        let mut v= Vec::with_capacity(pt_list[i].len());
+        for j in 0..pt_list[i].len() {
+            // fix this but it works for now sigh
+            v.push(pt_list[i][j]);
+        }
+        // for j in 0..
+        // let p2: Vec<Point> = p_v.iter().collect();
+        // let v = &Vec::from(p_v.iter().collect());
+        g = g.add(poly(&v, PolyArgs { 
+            fil: get_col(noise, p.x, p.y),
+            stroke: none_str(),
+            width: 1. ,
+            ..PolyArgs::default()
+        }));
+        //  let t = polytools.triangulate
+        // for k in 0..(t.len()) {
+            // let m =
+        // }
+    }
+    g
+}
 
 struct RockArgs {
     height: f64,
     width: f64,
-    tex: f64,
+    tex: usize,
     sha: f64
 }
 
@@ -913,13 +992,94 @@ impl RockArgs {
         Self {
             height: 80.,
             width: 100.,
-            tex: 40.,
+            tex: 40,
             sha: 10. 
         }
     }
 }
 fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs) -> Group {
     let mut g = Group::new();
+
+    let reso = [10, 50];
+    let resof = [10., 50.];
+    let mut pt_list = Vec::new();
+
+    for i in 0 ..reso[0] {
+        let i_f = i as f64;
+        pt_list.push(Vec::new());
+        let mut ns_list = Vec::new();
+        for j in 0..reso[1] {
+            ns_list.push(noise.noise(i_f, j as f64 * 0.2, seed));
+        }
+        noise.loop_noise(&mut ns_list);
+
+        for j in 0..reso[1] {
+            let a = (j as f64 / resof[1]) * PI * 2. - PI / 2.;
+            let mut l = // should give this a better name but i'm not sure entirely what it represents length?
+            // width * hgith / 
+                (args.width * args.height) / 
+                f64::sqrt(
+                    f64::powi(args.height * f64::cos(a), 2) 
+                        * f64::powi(args.width * f64::sin(a), 2));
+            l *= 0.7 + 0.3 * ns_list[j];
+            let p = 1. - (i_f / resof[0]) ;
+            let nx = f64::cos(a) * l * p;
+            let mut ny = -1. * f64::sin(a) * l * p;
+
+            if PI < a || a < 0. {
+                ny *= 0.2;
+            }
+            ny += args.height * (i_f / resof[0]) * 0.2;
+
+            let pt_lst = pt_list.len() - 1;
+            pt_list[pt_lst].push(Point { x: nx, y: ny });
+       }
+    }
+
+    //white bg
+    pt_list[0].push(Point { x: 0., y: 0. });
+    g = g.add(poly(&pt_list[0], PolyArgs { 
+        x_off, 
+        y_off, 
+        fil: white(),
+        stroke: none_str(),
+        ..PolyArgs::default()
+    }));
+    pt_list[0].pop();
+    // 0 0 is only added to the first point list for this poly
+   
+    // outline
+    let outline_pts = pt_list[0]
+        .iter()
+        .map(|p| { Point { x: p.x + x_off, y: p.y + y_off } })
+        .collect();
+    match stroke(noise, &outline_pts, StrokeArgs { 
+        col: color_a(100, 100, 100, 0.3),
+        noi: 1.,
+        width: 3.,
+        ..StrokeArgs::default()
+    } ) {
+        Some(s) => {
+            g = g.add(s);
+        }
+        None => {}
+    }
+    g = g.add(texture(noise, &pt_list, TextureArgs {
+        x_off,
+        y_off,
+        tex: args.tex,
+        width: 3.,
+        sha: args.sha,
+        dis: |n| {
+            if n.rand() > 0.5 {
+                0.15 + 0.15 * n.rand()
+            } else {
+                0.85 - 0.15 * n.rand()
+            }
+        },
+        ..TextureArgs::default()
+    } )); // todo correct hese
+
     g
 }
 
@@ -1397,7 +1557,15 @@ fn load_chunk(app_state: &mut State, noise: &mut Noise, x_min: f64, x_max: f64) 
                 };
                 g = g.add(flat_mount(noise, p.x, p.y, args))
             } else if p.tag == Tag::DistMount {
-
+                let seed = noise.rand();
+                let len = noise.rand_choice_arrf(&[500., 100., 1500.]);
+                g = g.add(dist_mount(noise, p.x, p.y, seed,
+                    DistMountArgs {
+                        height: 150.,
+                        len,
+                        ..DistMountArgs::default()
+                    }
+                ));
             } else if p.tag == Tag::Boat {
                 let args = BoatArgs {
                     scale: p.y / 800.,
