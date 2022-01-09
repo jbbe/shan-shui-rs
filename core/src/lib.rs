@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use svg::node::element::{Group, Polyline};
 use svg::Document;
 
@@ -23,15 +23,19 @@ struct TreeArgs {
     noi: f64,
 }
 
-fn default_tree1_args() -> TreeArgs {
-    TreeArgs {
-        height: 50.,
-        width: 3.,
-        clu: 0.,
-        col: "rgba(100,100,100,0.5)".to_string(),
-        noi: 0.5,
+impl TreeArgs {
+
+    pub fn tree1_default() -> Self {
+        Self {
+            height: 50.,
+            width: 3.,
+            clu: 0.,
+            col: "rgba(100,100,100,0.5)".to_string(),
+            noi: 0.5,
+        }
     }
 }
+
 
 fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
     let reso = 10;
@@ -361,7 +365,7 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
                         100,
                         noise.noise(0.01 * x, 0.01 * y, 0.) * 0.5 * 0.3 + 0.5,
                     ),
-                    ..default_tree1_args()
+                    ..TreeArgs::tree1_default()
                 },
             )
         },
@@ -507,6 +511,416 @@ fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Mountain
         ));
     }
     group
+}
+
+
+struct FlatMountArgs {
+    height: f64,
+    width: f64,
+    tex: usize,
+    cho: f64,
+    seed: f64,
+}
+
+impl FlatMountArgs {
+    pub fn default(noise: &mut Noise) -> Self {
+        let height = 40. + (noise.rand() * 400.);
+        let width = 400. + (noise.rand() * 200.);
+        Self {
+            height,
+            width,
+            tex: 80,
+            cho: 0.5,
+            seed: 0.
+        }
+    }
+}
+
+fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs) -> Group {
+    let mut g = Group::new();
+
+    let mut pt_list: Vec<Vec<Point>>  = Vec::new();
+    let mut flat : Vec<Vec<Point>> = Vec::new();
+    let reso  = [5, 50];
+    let reso_f  = [5., 50.];
+    let mut hoff = 0.;
+
+    for j in 0..reso[0] {
+        let j_f = j as f64;
+        hoff += (noise.rand() * y_off) / 100.;
+        pt_list.push(Vec::new());
+        flat.push(Vec::new());
+        
+        for i in 0..reso[1] {
+            let i_f = i as f64;
+            let x = (i_f / (reso_f[1] - 0.5)) * PI;
+            let mut y = f64::cos(x * 2.) + 1.;
+            y *= noise.noise(x + 10., j_f * 0.1, args.seed);
+            let p = 1. - (j_f /reso_f[0]) * 0.6;
+            let nx = (x / PI) * args.width * p;
+            let mut ny = (-y) * args.height * p + hoff;
+            let h = 100.;
+            if ny < -h * args.cho + hoff {
+                ny = -h * args.cho + hoff;
+                let flat_last = flat.len() - 1;
+                if flat[flat_last].len() % 2 == 0 {
+                    let val = vec!([nx, ny]);
+                    flat[flat_last].push(Point { x: nx, y: ny });
+                }
+            } else {
+                if flat[(flat.len() -1)].len() % 2 == 1 {
+                    // TODO 2125
+                    // Don't think it would be possible to get into this tate?
+                    let pt_last = pt_list.len() - 1;
+                    let pt_last_last = pt_list[pt_last].len() - 1;
+                    let flat_last = flat.len() - 1;
+                    flat[flat_last].push(pt_list[pt_last][pt_last_last].clone());
+                        // Point
+                        // pt_list[pt_list.len() - 1][pt_list.len() - 1]
+                        // pt_list[pt_last][pt_last_last].y,
+                    // );
+                    //     x: pt_list[(pt_list.len() - 1)], 
+                    //     y: ny 
+                    // });
+                }
+            }
+            let pt_last = pt_list.len() - 1;
+            pt_list[pt_last].push(Point { x: nx, y: ny});
+        }
+    }
+
+    // White BG
+    let end_p = Point { x: 0., y: reso_f[0] * 4.};
+    let mut bg_pts = pt_list[0].clone();
+    bg_pts.push(end_p);
+    g = g.add(poly(&bg_pts, PolyArgs {
+        x_off, 
+        y_off,
+        fil: "white".to_string(),
+        stroke: "none".to_string(),
+        ..PolyArgs::default()
+    }));
+
+    // Outline
+    let outln_pts = pt_list[0]
+        .iter()
+        .map(|p| { Point { x: p.x + x_off, y: p.y + y_off }})
+        .collect();
+    let outline = stroke(noise, &outln_pts, StrokeArgs {
+            col: color_a(100, 100, 100, 0.3),
+            noi: 1.,
+            width: 3.,
+            ..StrokeArgs::default()
+        });
+    if !outline.is_none() {
+        g= g.add(outline.unwrap());
+    }
+    g = g.add(texture(noise, &pt_list, TextureArgs {
+            x_off,
+            y_off,
+            tex: args.tex,
+            width: 2.,
+            dis: |n| {
+                if n.rand() > 0.5 {
+                    0.1 + 04. * n.rand()
+                } else {
+                    0.9 - 0.4 * n.rand()
+                }
+            },
+            ..TextureArgs::default()
+        }));
+
+    let mut gr_list_1: VecDeque<Point> = VecDeque::new();
+    gr_list_1.reserve(10);
+    let mut gr_list_2 = VecDeque::new();
+    gr_list_2.reserve(10);
+    for i in (0..(flat.len())).step_by(2) {
+        if flat[i].len() >= 2 {
+            gr_list_1.push_back(flat[i][0]);
+            gr_list_2.push_back(flat[i][flat[i].len() - 1]);
+        }
+    }
+
+    if gr_list_1.len() == 0 {
+        return g
+    }
+
+    let mut wb = [gr_list_1[0].x, gr_list_2[0].y];
+    // wb.reserve(10);
+    // wb.push([gr_list_1[0][0]);
+    // wb.push(gr_list_2[0][0]]);
+    for i in 0..3 {
+        let p = 0.8 - i as f64 * 0.2;
+
+        gr_list_1.push_front(Point { x: wb[0] * p, y: gr_list_1[0].y - 5.});
+        gr_list_2.push_front(Point { x: wb[1] * p, y: gr_list_2[0].y - 5.});
+    }
+    wb[0] = gr_list_1[gr_list_1.len() - 1].x;
+    wb[1] = gr_list_2[gr_list_2.len() - 1].x; 
+    for i in 0..3 {
+        let i_f = i as f64;
+        let  p = 0.6 - i_f * i_f * 0.1;
+
+        gr_list_1.push_back(Point { 
+            x: wb[0] * p,
+            y: gr_list_1[gr_list_1.len() - 1].y + 1.
+        });
+        gr_list_2.push_back(Point { 
+            x: wb[1] * p,
+            y: gr_list_2[gr_list_2.len() - 1].y + 1.
+        });
+    }
+    let d = 5.;
+
+    gr_list_1 = div(&gr_list_1, d);
+    gr_list_2 = div(&gr_list_2, d);
+
+    let gr_list = gr_zip(&mut gr_list_1, &mut gr_list_2);
+
+    let str_pts = gr_list
+        .iter()
+        .map(|p| { Point { x: p.x + x_off, y: p.y + y_off} })
+        .collect();
+     g = g.add(poly(&gr_list, PolyArgs { 
+         x_off,
+         y_off, 
+         fil: "white".to_string(),
+         stroke: "none".to_string(),
+         width: 2. 
+        }));
+    let stro = stroke(noise, &str_pts, StrokeArgs {
+            width: 3.,
+            col: color_a(100, 100, 100, 0.2),
+            ..StrokeArgs::default()
+        } ) ;
+    match stro {
+        Some(s) => {
+            g = g.add(s);
+        },
+        None => {},
+    }
+
+    if gr_list.len() > 0 {
+        let bnd = bound(gr_list);
+        // g = g.add(flat_dec(noise, x_off, y_off, bnd));
+        // g - g.add()
+    }
+    // fn bound(p_list: Vec<Point>) -> 
+    g
+}
+
+struct Bound {
+    x_min: f64,
+    x_max: f64,
+    y_min: f64,
+    y_max: f64,
+}
+fn bound(p_list: Vec<Point>) -> Bound {
+        let mut x_min = p_list[0].x;
+        let mut x_max = x_min;
+        let mut y_min = p_list[0].y; 
+        let mut y_max = y_min;
+        for p in p_list.iter() {
+            if  x_min > p.x {
+                x_min = p.x; 
+            }
+            if  x_min < p.x {
+                x_max = p.x;
+            }
+            if y_min > p.y {
+                y_min = p.y;
+            }
+            if y_max < p.y {
+                y_max = p.y
+            }
+            
+        }
+        Bound { x_min, x_max, y_min, y_max }
+}
+
+
+fn flatDec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> Group{
+    let mut g = Group::new();
+
+    let tt = noise.rand_choice_arr(&[0, 0, 1, 3, 3, 4]);
+    for i in 0..(f64::floor(noise.rand() * 5.) as usize) {
+        let seed = noise.rand() * 100.;
+        let width = 10. + (noise.rand() * 20.);
+        let height = 10. + (noise.rand() * 20.);
+        let args = RockArgs {
+            width,
+            height,
+            sha: 2.,
+            ..RockArgs::default()
+        };
+        g = g.add(rock(noise, x_off, y_off, seed, args));
+    }
+    for j in 0..(noise.rand_choice_arr(&[0, 0, 1, 2])) {
+        let xr = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+        let yr = y_off + (gr_bound.y_min + gr_bound.y_max) / 2. + noise.norm_rand(-5., 5.) + 20.;
+        let mut k = 0.;
+        while k < 2. + (noise.rand() * 3.) {
+            // add tree08 
+            k += 1.;
+        }
+    }
+
+    // let createRock: FnMut(&Noise) = |noise: &mut Noise|  {
+    //     let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+    //     let y = y_off + (gr_bound.y_min + gr_bound.y_max) / 2. + noise.norm_rand(-5., 5.) + 20.;
+    //     let seed = noise.rand() * 100.;
+    //     let width = 50. + noise.rand() * 20.;
+    //     let height = 40. + noise.rand() * 20.;
+    //     g = g.add(rock(
+    //             noise,
+    //             x,
+    //             y,
+    //             seed,
+    //             RockArgs {
+    //                 width,
+    //                 height,
+    //                 sha: 5.,
+    //                 ..RockArgs::default()
+    //             }
+    //     ));
+    //     ()
+    // };
+
+    if tt == 0 {
+        let mut j = 0.;
+        while j < (noise.rand() * 3.) {
+            // createRock(noise);
+        let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+        let y = y_off + (gr_bound.y_min + gr_bound.y_max) / 2. + noise.norm_rand(-5., 5.) + 20.;
+        let seed = noise.rand() * 100.;
+        let width = 50. + noise.rand() * 20.;
+        let height = 40. + noise.rand() * 20.;
+        g = g.add(rock(
+                noise,
+                x,
+                y,
+                seed,
+                RockArgs {
+                    width,
+                    height,
+                    sha: 5.,
+                    ..RockArgs::default()
+                }
+        ));
+            j += 1.;
+        }
+    } else if tt == 1 {
+        let p_min = noise.rand() * 0.5;
+        let p_max = noise.rand() * 0.5 + 0.5;
+        let x_min = gr_bound.x_min * (1. - p_min) + (gr_bound.x_max * p_min);
+        let x_max = gr_bound.x_min * (1. - p_max) + (gr_bound.x_max * p_max);
+        // for i 
+        // loop tree 05
+
+        // loop rock
+        let mut j = 0.;
+        while j < noise.rand() * 4. {
+            // createRock(noise);
+        let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+        let y = y_off + (gr_bound.y_min + gr_bound.y_max) / 2. + noise.norm_rand(-5., 5.) + 20.;
+        let seed = noise.rand() * 100.;
+        let width = 50. + noise.rand() * 20.;
+        let height = 40. + noise.rand() * 20.;
+        g = g.add(rock(
+                noise,
+                x,
+                y,
+                seed,
+                RockArgs {
+                    width,
+                    height,
+                    sha: 5.,
+                    ..RockArgs::default()
+                }
+        ));
+            j += 1.;
+        }
+    } else if tt == 2 {
+        for i in 0..(noise.rand_choice_arr(&[1, 1, 1, 1, 2, 2, 3])) {
+            let xr = noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+            let yr = (gr_bound.y_min + gr_bound.y_max) / 2.;
+            // add tree 04
+
+            let mut j = 0.;
+            while j < noise.rand() * 2. {
+                // createRock(noise);
+        let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+        let y = y_off + (gr_bound.y_min + gr_bound.y_max) / 2. + noise.norm_rand(-5., 5.) + 20.;
+        let seed = noise.rand() * 100.;
+        let width = 50. + noise.rand() * 20.;
+        let height = 40. + noise.rand() * 20.;
+        g = g.add(rock(
+                noise,
+                x,
+                y,
+                seed,
+                RockArgs {
+                    width,
+                    height,
+                    sha: 5.,
+                    ..RockArgs::default()
+                }
+        ));
+                j += 1.;
+            }
+        }
+    } else if tt == 3 {
+        for _ in 0..(noise.rand_choice_arr(&[1, 1, 1, 1, 2, 2, 3])) {
+            //  add tree06
+        }
+
+    } else if tt == 4 {
+        let p_min = noise.rand() * 0.5;
+        let p_max = noise.rand() * 0.5 + 0.5;
+        let x_min = gr_bound.x_min * (1. - p_min) + gr_bound.x_max * p_min;
+        let x_min = gr_bound.x_min * (1. - p_max) + gr_bound.x_max * p_min;
+        // for i in 0..x_max as 
+        //  loop tree 07
+
+    }
+
+    let mut i = 0.;
+    while i < 50. * noise.rand() {
+        // add tree02
+        let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+        let y = y_off + noise.norm_rand(gr_bound.y_min, gr_bound.y_max);
+        g = g.add(tree02(noise, x, y, TreeArgs::tree1_default())); // FIXME ( default args for tree2)
+
+        i += 1.;
+    }
+
+    let ts = noise.rand_choice_arr(&[0, 0, 0, 0, 0, 1]);
+    if ts == 1 && tt != 4 {
+        // Add arch
+    }
+    g
+}
+
+struct RockArgs {
+    height: f64,
+    width: f64,
+    tex: f64,
+    sha: f64
+}
+
+impl RockArgs { 
+    fn default() -> Self {
+        Self {
+            height: 80.,
+            width: 100.,
+            tex: 40.,
+            sha: 10. 
+        }
+    }
+}
+fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs) -> Group {
+    let mut g = Group::new();
+    g
 }
 
 struct Man {}
@@ -853,20 +1267,8 @@ fn mount_planner(app_state: &mut State, noise: &mut Noise, x_min: f64, x_max: f6
                     let lower_lim = f64::floor((xof - m_wid) / x_step) as i32; 
                     let upper_lim = f64::floor((xof + m_wid) / x_step) as i32;
                     for k in lower_lim..upper_lim {
-                        // if k < app_state.plan_mtx.len() {
-                            // is this determining the crest of the mountains?
-                        // let val = *(app_state.plan_mtx.entry(k).or_insert(0));
-                        //  app_state.get_mut(k) = val + 1;
+                        // is this determining the crest of the mountains?
                         *(app_state.plan_mtx.entry(k).or_insert(0)) += 1;
-                        // } else {
-                        //     println!(
-                        //         "!! k is out of bounds idxng into plan_mtx len: {:?} k {:?}",
-                        //         app_state.plan_mtx.len(),
-                        //         k
-                        //     );
-                        //     // The desired behavior here might be to increase the vec size to upper limit
-                        //     break;
-                        // }
                     }
                 } // for k
             } // if res
@@ -983,8 +1385,19 @@ fn load_chunk(app_state: &mut State, noise: &mut Noise, x_min: f64, x_max: f64) 
                 .add(w)
                 ;
             } else if p.tag == Tag::FlatMount {
-                // g = g.add()
+                let seed = 2. * noise.rand();
+                let width = 600. + (noise.rand() * 400.);
+                let cho = 0.5 + (noise.rand() * 0.2);
+                let args = FlatMountArgs {
+                    width,
+                    height: 100.,
+                    cho,
+                    seed,
+                    ..FlatMountArgs::default(noise)
+                };
+                g = g.add(flat_mount(noise, p.x, p.y, args))
             } else if p.tag == Tag::DistMount {
+
             } else if p.tag == Tag::Boat {
                 let args = BoatArgs {
                     scale: p.y / 800.,

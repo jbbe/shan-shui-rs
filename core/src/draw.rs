@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use super::noise::Noise;
 use super::point::*;
 use svg::node::element::{Group, Polyline, Rectangle};
@@ -237,7 +239,39 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
         }, // 0., 0., args.col.clone(), args.col, 0.
     )
 }
-#[allow(dead_code)]
+/*
+* creates and returns a new vec
+*/
+pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
+    let tl = p_list.len() - 1 * (reso as usize);
+    let mut lx = 0.;
+    let mut ly = 0.;
+    let mut r_list = VecDeque::new();
+    r_list.reserve(p_list.len());
+
+    for i in 0..tl {
+        let last_i = f64::floor(i as f64 / reso) as usize;
+        let next_i = f64::ceil(i as f64 / reso) as usize;
+        let last_p = p_list[last_i];
+        let next_p = p_list[next_i];
+        let p = (i as f64 % reso) / reso;
+        let nx = last_p.x * (1. - p) + next_p.x * p;
+        let ny = last_p.y * (1. - p) + next_p.y * p;
+
+        let ang = f64::atan2(ny - ly, nx -lx);
+        r_list.push_back(Point { x: nx, y: ny });
+        lx = nx;
+        ly = ny;
+    }
+
+    if p_list.len() > 0 {
+        r_list.push_back(p_list[p_list.len() - 1]);
+    }
+
+    r_list
+}
+
+// #[allow(dead_code)]
 pub struct TextureArgs {
     pub x_off: f64,
     pub y_off: f64,
@@ -379,6 +413,23 @@ pub fn rect(x: f64, y: f64, w: f64, h: f64, r: u8, g: u8, b: u8) -> Rectangle {
         .set("height", h)
 }
 
+pub fn gr_zip(a: &VecDeque<Point>, b: &VecDeque<Point>) -> Vec<Point> {
+    //   grlist1.reverse().concat(grlist2.concat([grlist1[0]]));
+    // note that the reverse on grlist1 means that we end with 
+    // the last point in grlist1
+    let mut res  = Vec::with_capacity(a.len() + b.len());
+    let a_len = a.len();
+    for i in 0..a_len {
+        res.push(a[a_len - i - 1].clone());
+    }
+    for b_i in b.iter() {
+        res.push((*b_i).clone());
+    }
+    // res.append(&mut Vec::from(&b));
+    res.push(a[a_len - 1].clone());
+    res
+}
+
 /*
 * Tests
 */
@@ -413,4 +464,34 @@ fn test_stroke_zip() {
     ];
     let res = stroke_zip(&pt_list, &mut vtx_list0, &mut vtx_list1);
     assert_eq!(correct, res);
+}
+
+#[test]
+fn test_gr_zip() {
+    //   var grlist = grlist1.reverse().concat(grlist2.concat([grlist1[0]]));
+    let mut gr_list1 = VecDeque::from(vec![
+        Point { x: 0., y: 0. },
+        Point { x: 3., y: 3. },
+        Point { x: 999., y: 999. },
+    ]);
+    let mut gr_list2 = VecDeque::from(vec![
+        Point { x: 0.1, y: 0.1 },
+        Point { x: 0.2, y: 0.2 },
+        Point { x: 0.3, y: 0.3 },
+    ]);
+
+    let correct = vec![
+        Point { x: 999., y: 999. },
+        Point { x: 3., y: 3. },
+        Point { x: 0., y: 0. },
+        Point { x: 0.1, y: 0.1 },
+        Point { x: 0.2, y: 0.2 },
+        Point { x: 0.3, y: 0.3 },
+        Point { x: 999., y: 999. },
+    ];
+    let res = gr_zip(&mut gr_list1, &mut gr_list2);
+
+    assert_eq!(correct, res);
+
+      
 }
