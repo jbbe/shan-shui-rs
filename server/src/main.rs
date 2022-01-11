@@ -16,7 +16,7 @@ fn main() {
             // let id = rand::random::<i32>();
             // sessions = sessions.insert(id, painting);
             // shan_shui::svg_string(false)
-            painting.write_svg(256., 256.)
+            painting.write_svg(1024., 512.)
         }
         get "/mount/:seed" => |req, mut res| {
             res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);

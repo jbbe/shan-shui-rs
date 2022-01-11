@@ -31,7 +31,7 @@ pub fn distance(p1: &Point, p2: &Point) -> f64 {
 fn mid_pt(p_list: Vec<Point>) -> Point {
     let mut acu = Point { x: 0., y: 0. };
     let v = Point { x: 0., y: 0. };
-    for i in 0..(p_list.len()) {
+    for _ in 0..(p_list.len()) {
         acu.x = (v.x / p_list.len() as f64) + acu.x;
         acu.y = (v.x / p_list.len() as f64) + acu.y;
     }

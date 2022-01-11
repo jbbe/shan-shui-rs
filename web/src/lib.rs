@@ -4,7 +4,6 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 
-// const PI : f64 = std::f64::consts::PI;
 
 #[wasm_bindgen]
 extern "C" {

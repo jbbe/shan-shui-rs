@@ -1,10 +1,8 @@
 use std::collections::VecDeque;
-
 use super::noise::Noise;
 use super::point::*;
 use svg::node::element::{Group, Polyline, Rectangle};
-
-const PI: f64 = std::f64::consts::PI;
+use core::f64::consts::PI;
 
 pub fn color(r: u8, b: u8, g: u8) -> String {
     format!("rgb({},{},{})", r, g, b)

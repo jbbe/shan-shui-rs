@@ -1,10 +1,10 @@
 /*
 * Perlin Noise
 */
+use core::f64::consts::PI;
 const PERLIN_SIZE: usize = 4096;
 const PERLIN_LAST: i32 = 4094;
 
-const PI: f64 = std::f64::consts::PI;
 // const PERLIN_ARRAY_SIZE: usize = 4096;
 pub struct Noise {
     perlin_octaves: usize,
