@@ -919,12 +919,21 @@ fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: DistMo
     let span = 10.;
 
     let mut pt_list = Vec::new();
-    let lim = (args.len / span / args.seg) as usize;
-    for i in 0..lim {
+
+
+    let push_cnt = (args.len / span / args.seg) as usize;
+
+    // let inner_vec_capacity = (args.seg + 1. + (args.seg /2.)+ 1. + (args.seg /2.) + 1.) as usize;
+    let lower_half_of_vec_capacity = (args.seg /2.) as usize + 1;
+    let upper_half_of_vec_capacity = args.seg as usize + 1;
+    let inner_vec_capacity = lower_half_of_vec_capacity + upper_half_of_vec_capacity;
+
+    for i in 0..push_cnt {
         let i_f = i as f64;
-        let capacity = (args.seg + 1. + (args.seg /2.)+ 1. + (args.seg /2.) + 1.) as usize;
-        pt_list.push(VecDeque::with_capacity(capacity));
-        for j in 0..(args.seg as usize + 1) {
+        pt_list.push(Vec::with_capacity(inner_vec_capacity));
+        let pt_last = pt_list.len() - 1;
+        pt_list[pt_last].resize(inner_vec_capacity, Point { x: 0., y: 0. });
+        for j in 0..upper_half_of_vec_capacity {
             let tran = |noise: &mut Noise, k: f64| {
                 Point {
                     x: x_off + k * span,
@@ -933,11 +942,11 @@ fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: DistMo
                 }
             };
             let pt_last = pt_list.len() - 1;
-            pt_list[pt_last].push_back(tran(noise, i_f * args.seg * j as f64 * 2.))
+            pt_list[pt_last][lower_half_of_vec_capacity + j] = tran(noise, i_f * args.seg * j as f64 * 2.)
             // let t = polytools.triangulate(pt_list[i])
         }
 
-        for j in 0..((args.seg  / 2.) as usize + 1) {
+        for j in 0..lower_half_of_vec_capacity {
             let tran = |noise: &mut Noise, k: f64| {
                 Point {
                     x: x_off + k * span,
@@ -946,7 +955,7 @@ fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: DistMo
                 }
             };
             let pt_last = pt_list.len() - 1;
-            pt_list[pt_last].push_front(tran(noise, i_f * args.seg + j as f64 * 2.));
+            pt_list[pt_last][j] = tran(noise, i_f * args.seg + j as f64 * 2.)
         }
     }
 
