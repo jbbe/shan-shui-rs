@@ -71,11 +71,14 @@ pub fn draw_background(seed: f64) -> String {
     let indexes = ((resolution / 2.) + 1.) as usize;
     for i in 0..indexes {
         for j in 0..indexes {
-            let rand_decr = noise.rand() * 255.;
-            let c = (245. + noise.noise(i as f64 * 0.1,j as f64 * 0.1 as f64, 0.) * 10.) - rand_decr;
-            let r = c as u8;
-            let g  = (c * 0.95) as u8;
-            let b = (c * 0.85) as u8;
+            let rand_decr = noise.rand() * 20.;
+            let c = 
+                (245.
+                    + noise.noise(i as f64 * 0.1,j as f64 * 0.1 as f64, 0.) * 10.) 
+                    - rand_decr;
+            let r = (c ) as u8 % 255;
+            let g  = (c * 0.98) as u8;
+            let b = (c * 0.97) as u8;
             let color = shan_shui::color(r, g, b);
             ctx.set_fill_style(&JsValue::from_str(&color));
             ctx.fill_rect(i as f64, j as f64, 1., 1.);
@@ -96,6 +99,11 @@ pub fn draw_background(seed: f64) -> String {
     //     .set_property("backgroundImage", format!("url({})", img));
     // ()
 }
+
+// #[wasm_bindgen(update)]
+// fn update(curx: f64, windx) {
+// 
+// }
 
 
 // #[wasm_bindgen]
