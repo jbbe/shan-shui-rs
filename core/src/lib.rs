@@ -47,7 +47,7 @@ struct Chunk {
     tag: Tag,
     x: f64,
     y: f64,
-    g: Group,
+    canv: String,
 }
 
 const SAMP: f64 = 0.03;
@@ -116,7 +116,7 @@ impl State {
                     tag: p.tag,
                     x: p.x,
                     y: p.y,
-                    g: State::gen_chunk(noise, p, i)
+                    canv: State::gen_chunk(noise, p, i).to_string()
                 });
             }
         }
@@ -387,7 +387,7 @@ impl Painting {
             if x_min - self.state.c_wid < self.state.chunks[i].x &&
                 self.state.chunks[i].x < x_max + self.state.c_wid {
             println!("pushing chunk {}", i);
-            canv.push(self.state.chunks[i].g.to_string());
+            canv.push(self.state.chunks[i].canv.to_string());
             }
         }
         println!("Rendered {} chunks", canv.len());

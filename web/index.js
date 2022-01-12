@@ -158,11 +158,9 @@ const MEM = {
   cwid: 511,
   cursx: -1,
   lasttick: -1,
-  windx: 2999,
+  windx: 3000,
   windy: 799,
 };
-
-// const PaintingXFace;
 
 window.onload = () => {
   rust.then((m) => {
@@ -181,10 +179,11 @@ window.onload = () => {
       function update() {
         // return
         console.log("update!", MEM.cursx, MEM.cursx + MEM.windx, MEM);
+        // console.profile("update")
         console.time("update")
         let svg = m.update(paintingXface, MEM.cursx, MEM.cursx + MEM.windx);
-        console.timeEnd()
-        // console.log(svg);
+        console.timeEnd("update")
+        // console.profileEnd("update")
         document.getElementById("BG").innerHTML = svgTemplate(MEM.windx, MEM.windy, calcViewBox(), svg);
       }
       function xcroll(v) {
@@ -207,11 +206,13 @@ window.onload = () => {
       function drawBackground(seed) {
         console.log("drawing background", seed);
         document.getElementsByTagName("body")[0].style.backgroundImage = "";
+        console.time("drawbkgrnd");
         let img = m.draw_background(seed);
+        console.timeEnd("drawbkgrnd")
         document.getElementsByTagName("body")[0].style.backgroundImage =
           "url(" + img + ")";
       }
-      drawBackground(Math.random());
+      requestAnimationFrame(() => drawBackground(Math.random()));
 
       // const addButton = document.getElementById("add");
       // addButton.onclick = () => getChunk();
@@ -235,20 +236,20 @@ window.onload = () => {
 
       rPanel.onmouseover = rstyle("R", true);
       rPanel.onmouseout = rstyle("R", false);
-      rPanel.onclick = xcroll(200);
+      rPanel.onclick = () => xcroll(200);
       rstyle("L", false);
 
       const lPanel = document.getElementById("L");
 
       lPanel.onmouseover = rstyle("L", true);
       lPanel.onmouseout = rstyle("L", false);
-      lPanel.onclick = xcroll(-200);
+      lPanel.onclick = () => xcroll(-200);
       rstyle("L", false);
       MEM.lasttick = new Date().getTime();
       document
         .getElementById("BG")
         .setAttribute("style", "width:" + MEM.windx + "px");
-      update();
+      requestAnimationFrame(() => update());
       document.body.scrollTo(0, 0);
       console.log(["SCROLLX", window.scrollX]);
       present();
