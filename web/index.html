@@ -9,9 +9,9 @@
         body {
             background-color: #bebebe; 
             margin: 0; 
-            overflow: hidden;
+            /* overflow: hidden;
             display: grid;
-            place-content: center;
+            place-content: center; */
         }
 
         #svg-container {
@@ -50,11 +50,14 @@
             border: none;
             width:150px;
         }
+        table {
+          border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body >
     <div id="button-container">
-        <button id="add">add</button>
+         <button id="add">add</button>
         <button id="reset">reset</button>
         <button id="mount">mount</button>
         <button id="boat">boat</button>
@@ -64,5 +67,26 @@
     </div>
     <div id="svg-container"></div>
     <canvas style="display:none" id="bg-canvas"></canvas>
+
+  <table style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+    <tr>
+      <td>
+        <div id="L" >
+          <div id="L.t"><font size="6px">&#x3008;</font></div>
+        </div>
+      </td>
+
+      <td>
+        <div id="BG">
+        </div>
+      </td>
+
+      <td>
+        <div id="R" >
+          <div id="R.t"><font size="6px">&#x3009;</font></div>
+        </div>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>

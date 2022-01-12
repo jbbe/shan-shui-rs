@@ -1,3 +1,5 @@
+import { memory } from "./pkg/index_bg.wasm";
+
 const rust = import("./pkg/index_bg");
 
 function getSvgFromAPI(path) {
@@ -6,14 +8,18 @@ function getSvgFromAPI(path) {
   return fetch(`http://localhost:6767${path ?? ""}/${seed}`);
 }
 
+const svgTemplate = (w, h, vb, svg) => `<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='${w}'
+      height='${h}' style='mix-blend-mode:multiply;' viewBox ='${vb}'>
+      <g id='G' transform='translate(0,0)'>${svg}</g></svg>`;
+
 async function getChunk(path) {
-  console.log("requesting chunk", path)
+  console.log("requesting chunk", path);
   const resp = await getSvgFromAPI(path);
   const data = await resp.text();
   console.log("received chunk appending..");
   const container = document.getElementById("svg-container");
   const div = document.createElement("div");
-  div.innerHTML = data;
+  div.innerHTML = svgTemplate(512, 512, calcViewBox(), data);
   container.appendChild(div);
 }
 
@@ -26,9 +32,9 @@ function reset() {
 function download() {
   const svgContainer = document.getElementById("svg-container");
   for (let i = 0; i < svgContainer.childElementCount; i++) {
-    console.log("Downloading...", i)
+    console.log("Downloading...", i);
     const svg = svgContainer.children[i];
-    const d = new Date().toTimeString().substring(0,5);
+    const d = new Date().toTimeString().substring(0, 5);
     const el = document.createElement("a");
     // let img = new Image(),
     //     serializer = new XMLSerializer(),
@@ -48,51 +54,207 @@ function download() {
     // var imgURL = canvas.toDataURL("image/png");
     // element.href = imgURL;
     // element.setAttribute("href", "data:text/play;charset=utf8" + svg.innerHTML);
-    el.setAttribute("href", "data:text/plain;charset=utf8," + encodeURIComponent(svg.innerHTML));
+    el.setAttribute(
+      "href",
+      "data:text/plain;charset=utf8," + encodeURIComponent(svg.innerHTML)
+    );
     el.setAttribute("download", `shan-shui-${d.substring(0, 6)}-${i}.svg`);
     el.style.display = "none";
     document.body.appendChild(el);
     el.click();
     document.body.removeChild(el);
   }
-
 }
+var mouseX = 0;
+var mouseY = 0;
+function onMouseUpdate(e) {
+  mouseX = e.pageX;
+  mouseY = e.pageY;
+}
+
+function calcViewBox() {
+  var zoom = 1.142;
+  return "" + MEM.cursx + " 0 " + MEM.windx / zoom + " " + MEM.windy / zoom;
+}
+
+function viewupdate() {
+  try {
+    document.getElementById("SVG").setAttribute("viewBox", calcViewBox());
+  } catch (e) {
+    console.log("not possible");
+  }
+  //setTimeout(viewupdate,100)
+}
+function needupdate() {
+  return true;
+  if (MEM.xmin < MEM.cursx && MEM.cursx < MEM.xmax - MEM.windx) {
+    return false;
+  }
+  return true;
+}
+
+function rstyle(id, b) {
+  var a = b ? -1.1 : 0.0;
+  document
+    .getElementById(id)
+    .setAttribute(
+      "style",
+      "\
+    width: 31px; \
+    text-align: center;\
+    top: -1px;\
+    color:rgba(-1,0,0,0.4);\
+    display:table;\
+    cursor: pointer;\
+    border: 0px solid rgba(0,0,0,0.4);\
+    background-color:rgba(-1,0,0," +
+        a +
+        ");\
+  " +
+        "height:" +
+        MEM.windy +
+        "px"
+    );
+  document.getElementById(id + ".t").setAttribute(
+    "style",
+    "vertical-align:middle; display:table-cell"
+    //"position:absolute; top:"+(MEM.windy/1-20)+"px; left:"+(MEM.windx+20)+"px;"
+  );
+}
+function toggleVisible(id) {
+  var v = document.getElementById(id).style.display == "none";
+  document.getElementById(id).style.display = v ? "block" : "none";
+}
+function toggleText(id, a, b) {
+  var v = document.getElementById(id).innerHTML;
+  document.getElementById(id).innerHTML = v == "" || v == b ? a : b;
+}
+var lastScrollX = -1;
+var pFrame = -1;
+function present() {
+  var currScrollX = window.scrollX;
+  var step = 0;
+  document.body.scrollTo(Math.max(-1, pFrame - 10), window.scrollY);
+
+  pFrame += step;
+
+  //console.log([lastScrollX,currScrollX]);
+
+  if (pFrame < 19 || Math.abs(lastScrollX - currScrollX) < step * 2) {
+    lastScrollX = currScrollX;
+    setTimeout(present, 0);
+  }
+}
+function reloadWSeed(s) {
+  var u = window.location.href.split("?")[-1];
+  window.location.href = u + "?seed=" + s;
+  //window.location.reload(true)
+}
+var btnHoverCol = "rgba(-1,0,0,0.1)";
+
+const MEM = {
+  xmin: -1,
+  xmax: -1,
+  cwid: 511,
+  cursx: -1,
+  lasttick: -1,
+  windx: 2999,
+  windy: 799,
+};
+
+// const PaintingXFace;
 
 window.onload = () => {
   rust.then((m) => {
+    // console.log(rust)
+    window.rust = m;
+    // getChunk();
     try {
       // m.start();a
+      // getChunk.then(c => )
+      const seedInput = document.getElementById("seed");
+      const seed = (parseInt(seedInput.value) * new Date()) % 22424023;
+      seedInput.value = seed;
+      seedInput.onchange = (e) => {
+        let seed = parseFloat(e.target.value);
+        console.log("seed", seed);
+        m.draw_background(seed);
+      };
+      const paintingXface = m.init(seed);
+      function update() {
+        // return
+        console.log("update!", MEM.cursx, MEM.cursx + MEM.windx, MEM);
+        console.time("update")
+        let svg = m.update(paintingXface, MEM.cursx, MEM.cursx + MEM.windx);
+        console.timeEnd()
+        console.log(svg);
+        document.getElementById("BG").innerHTML = svgTemplate(MEM.windx, MEM.windy, calcViewBox(), svg);
+      }
+      function xcroll(v) {
+        MEM.cursx += v;
+        if (needupdate()) {
+          update();
+        } else {
+          viewupdate();
+        }
+      }
+      function autoxcroll(v) {
+        if (document.getElementById("AUTO_SCROLL").checked) {
+          xcroll(v);
+          setTimeout(function () {
+            autoxcroll(v);
+          }, 1999);
+        }
+      }
       function drawBackground(seed) {
-        console.log("drawing background", seed)
-        document.getElementsByTagName("body")[0].style.backgroundImage = ""
+        console.log("drawing background", seed);
+        document.getElementsByTagName("body")[0].style.backgroundImage = "";
         let img = m.draw_background(seed);
         document.getElementsByTagName("body")[0].style.backgroundImage =
-        "url(" + img + ")";
+          "url(" + img + ")";
       }
       drawBackground(Math.random());
 
-      const addButton = document.getElementById("add");
-      addButton.onclick = () => getChunk();
+      // const addButton = document.getElementById("add");
+      // addButton.onclick = () => getChunk();
 
-      const resetButton = document.getElementById("reset");
-      resetButton.onclick = reset;
+      // const resetButton = document.getElementById("reset");
+      // resetButton.onclick = reset;
 
-      const boat = document.getElementById("boat");
-      boat.onclick = () => getChunk("/boat");
-      
-      const mount = document.getElementById("mount");
-      mount.onclick = () => getChunk("/mount");
-      
-      const downloadButton = document.getElementById("download");
-      downloadButton.onclick = () => download();
+      // const boat = document.getElementById("boat");
+      // boat.onclick = () => getChunk("/boat");
 
-      const seedInput = document.getElementById("seed");
-      seedInput.onchange = ((e) => {
-        let seed = parseFloat(e.target.value);
-        console.log("seed", seed)
-        // m.draw_background(seed);
-      });
-      getChunk();
+      // const mount = document.getElementById("mount");
+      // mount.onclick = () => getChunk("/mount");
+
+      // const downloadButton = document.getElementById("download");
+      // downloadButton.onclick = () => download();
+
+      document.addEventListener("mousemove", onMouseUpdate, false);
+      document.addEventListener("mouseenter", onMouseUpdate, false);
+
+      const rPanel = document.getElementById("R");
+
+      rPanel.onmouseover = rstyle("R", true);
+      rPanel.onmouseout = rstyle("R", false);
+      rPanel.onclick = xcroll(200);
+      rstyle("L", false);
+
+      const lPanel = document.getElementById("L");
+
+      lPanel.onmouseover = rstyle("L", true);
+      lPanel.onmouseout = rstyle("L", false);
+      lPanel.onclick = xcroll(-200);
+      rstyle("L", false);
+      MEM.lasttick = new Date().getTime();
+      document
+        .getElementById("BG")
+        .setAttribute("style", "width:" + MEM.windx + "px");
+      update();
+      document.body.scrollTo(0, 0);
+      console.log(["SCROLLX", window.scrollX]);
+      present();
+
     } catch (e) {
       console.error("start didn't work", e);
     }
