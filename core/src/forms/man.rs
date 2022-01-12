@@ -37,7 +37,7 @@ impl ManArgs {
         }
     }
 }
-
+#[allow(dead_code)]
 pub struct StickArgs {
     fli: bool,
 }

@@ -41,6 +41,7 @@ impl Plan {
         Self { tag, x, y }
     }
 }
+#[allow(dead_code)]
 #[derive(Debug)]
 struct Chunk {
     tag: Tag,
@@ -92,8 +93,8 @@ impl State {
     // fn chadd()
     // as opposed to creating and saving a 'chunk' like in the js version
     // load chunk returns a group that contains the svg for this section
-    pub fn gen_chunks(&mut self, noise: &mut Noise, x_min: f64, x_max: f64) -> Group {
-        let mut g = Group::new();
+    pub fn gen_chunks(&mut self, noise: &mut Noise, x_min: f64, x_max: f64) {
+        // let mut g = Group::new();
         while x_max > self.x_max - self.c_wid || x_min < self.x_min + self.c_wid {
             println!("Generating new chunk...",);
 
@@ -119,7 +120,7 @@ impl State {
                 });
             }
         }
-        g
+        // g
     }
 
     fn gen_chunk(noise: &mut Noise, p: &Plan, i: usize) -> Group {
@@ -312,50 +313,52 @@ impl State {
     }
 }
 
-pub fn gen_svg(seed: f64, draw_background: bool) -> Document {
-    let mut app_state: State = State::new();
-    let mut noise = Noise::new(seed);
-    let resolution = 512.;
+// pub fn gen_svg(seed: f64, draw_background: bool) -> Document {
+//     let mut app_state: State = State::new();
+//     let mut noise = Noise::new(seed);
+//     let resolution = 512.;
 
-    let mut nodes = Group::new();
+//     let mut nodes = Group::new();
 
-    if draw_background {
-        let indexes = ((resolution / 2.) + 1.) as usize;
-        for i in 0..indexes {
-            for j in 0..indexes {
-                let rand_decr = noise.rand() * 255.;
-                let c = (245. + noise.noise(i as f64 * 0.1, j as f64 * 0.1 as f64, 0.) * 10.)
-                    - rand_decr;
-                let r = c as u8;
-                let g = (c * 0.95) as u8;
-                let b = (c * 0.85) as u8;
+//     if draw_background {
+//         let indexes = ((resolution / 2.) + 1.) as usize;
+//         for i in 0..indexes {
+//             for j in 0..indexes {
+//                 let rand_decr = noise.rand() * 255.;
+//                 let c = (245. + noise.noise(i as f64 * 0.1, j as f64 * 0.1 as f64, 0.) * 10.)
+//                     - rand_decr;
+//                 let r = c as u8;
+//                 let g = (c * 0.95) as u8;
+//                 let b = (c * 0.85) as u8;
 
-                nodes = nodes
-                    .add(rect(i as f64, j as f64, 1., 1., r, g, b))
-                    .add(rect(resolution - i as f64, j as f64, 1., 1., r, g, b))
-                    .add(rect(i as f64, resolution - j as f64, 1., 1., r, g, b))
-                    .add(rect(
-                        resolution - i as f64,
-                        resolution - j as f64,
-                        1.,
-                        1.,
-                        r,
-                        g,
-                        b,
-                    ));
-            }
-        }
-    }
+//                 nodes = nodes
+//                     .add(rect(i as f64, j as f64, 1., 1., r, g, b))
+//                     .add(rect(resolution - i as f64, j as f64, 1., 1., r, g, b))
+//                     .add(rect(i as f64, resolution - j as f64, 1., 1., r, g, b))
+//                     .add(rect(
+//                         resolution - i as f64,
+//                         resolution - j as f64,
+//                         1.,
+//                         1.,
+//                         r,
+//                         g,
+//                         b,
+//                     ));
+//             }
+//         }
+//     }
 
-    nodes = nodes.add(app_state.gen_chunks(&mut noise, 0., 256.));
-    Document::new()
-        .set("viewbox", (0., 0., resolution, resolution))
-        .set("style", "mix-blend-mode:multiply")
-        .add(nodes)
-}
+    // nodes = nodes.add(app_state.gen_chunks(&mut noise, 0., 256.));
+    // Document::new()
+    //     .set("viewbox", (0., 0., resolution, resolution))
+    //     .set("style", "mix-blend-mode:multiply")
+    //     .add(nodes)
+// }
 
 pub fn svg_string(seed: f64) -> String {
-    gen_svg(seed, false).to_string()
+    // gen_svg(seed, false).to_string()
+    let mut p = Painting::new(seed);
+    p.update(0., 3000.)
 }
 
 pub fn write_svg(svg_file: &str, doc: &Document) {

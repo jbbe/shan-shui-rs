@@ -4,7 +4,7 @@ use super::*;
 use svg::node::element::{Group};
 use std::collections::{VecDeque};
 use core::f64::consts::PI;
-
+#[allow(DeadCode)]
 pub struct MountainArgs {
     height: f64,
     width: f64,

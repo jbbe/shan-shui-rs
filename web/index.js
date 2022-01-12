@@ -166,12 +166,9 @@ const MEM = {
 
 window.onload = () => {
   rust.then((m) => {
-    // console.log(rust)
     window.rust = m;
-    // getChunk();
+    // getChunk()
     try {
-      // m.start();a
-      // getChunk.then(c => )
       const seedInput = document.getElementById("seed");
       const seed = (parseInt(seedInput.value) * new Date()) % 22424023;
       seedInput.value = seed;
@@ -187,10 +184,11 @@ window.onload = () => {
         console.time("update")
         let svg = m.update(paintingXface, MEM.cursx, MEM.cursx + MEM.windx);
         console.timeEnd()
-        console.log(svg);
+        // console.log(svg);
         document.getElementById("BG").innerHTML = svgTemplate(MEM.windx, MEM.windy, calcViewBox(), svg);
       }
       function xcroll(v) {
+        console.log("xcroll ", v)
         MEM.cursx += v;
         if (needupdate()) {
           update();
