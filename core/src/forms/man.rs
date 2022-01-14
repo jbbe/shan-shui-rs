@@ -94,7 +94,7 @@ impl Man {
             PolyArgs {
                 fil: color_a(100, 100, 100, 0.8),
                 stroke: color_a(100, 100, 100, 0.8),
-                ..PolyArgs::default()
+                ..PolyArgs::default(Some("man".to_string()))
 
             }
         )

@@ -53,7 +53,7 @@ pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Grou
                     width: 1.,
                     // col: color_a(100, 100, 100, 0.3 + _rand() * 0.3),
                     col: blue(),
-                    ..StrokeArgs::default()
+                    ..StrokeArgs::default("wawa".to_string())
                 },
             )
             .unwrap(),

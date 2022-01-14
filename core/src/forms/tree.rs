@@ -82,7 +82,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
                 fil: "none".to_string(),
                 stroke: args.col.clone(),
                 width: 1.5,
-                ..PolyArgs::default()
+                ..PolyArgs::default(Some("tree01 p1".to_string()))
             }
             // 0.,
             // 0.,
@@ -94,7 +94,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
             fil: "none".to_string(), 
             stroke: args.col,
             width: 1.5,
-            ..PolyArgs::default()
+            ..PolyArgs::default(Some("tree01 p2".to_string()))
         }
     ));
     g

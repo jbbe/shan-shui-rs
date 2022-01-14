@@ -39,17 +39,18 @@ pub struct PolyArgs {
     pub fil: String,
     pub stroke: String,
     pub width: f64,
+    pub name: Option<String>
 }
 
 impl PolyArgs {
-    pub fn default() -> Self {
+    pub fn default(name: Option<String>) -> Self {
         Self {
             x_off: 0.,
             y_off: 0.,
             fil: color_a(0, 0, 0, 0.),
             stroke: color_a(0, 0, 0, 0.),
             width: 0.,
-            
+            name
         }
     }
 }
@@ -72,10 +73,15 @@ pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> Polyline {
         //     data = data.line_by((x, y));
         // }
     }
+    let n = match args.name {
+        Some(s) => s,
+        None => "n".to_string(),
+    };
     let fmtd_pts = p_data.join(" ");
     // data = data.close();
     // usvg::Path::()
     Polyline::new()
+        .set("name", n)
         .set("fill", args.fil)
         .set("stroke", args.stroke)
         .set("stroke-width", args.width)
@@ -90,10 +96,11 @@ pub struct StrokeArgs {
     pub noi: f64,
     pub out: f64,
     pub fun: fn(x: f64) -> f64,
+    pub name: String,
 }
 
 impl StrokeArgs {
-    pub fn default() -> Self {
+    pub fn default(name: String) -> Self {
         Self {
             x_off: 0.,
             y_off: 0.,
@@ -102,6 +109,7 @@ impl StrokeArgs {
             noi: 0.5,
             out: 1.,
             fun: |x| f64::sin(x * PI),
+            name,
         }
     }
 }
@@ -154,9 +162,9 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
     //     a += Math.PI;
     //   }
         let a = if a2 > a1 {
-           (a1 + a2) / 2. + PI
-        } else { 
-           (a1 + a2) / 2.
+                (a1 + a2) / 2. + PI
+            } else { 
+                (a1 + a2) / 2.
         } ;
         vtx_list0.push(Point {
             x: pt_list[i].x + wb * f64::cos(a),
@@ -171,6 +179,7 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
     // let mut vtx_list: Vec<Point> = !Vec(pt_list[0]).append(vtx_list1.reverse());
     let vtx_list = stroke_zip(&pt_list, &mut vtx_list0, &mut vtx_list1);
 
+
     Some(poly(
         &vtx_list,
         PolyArgs {
@@ -179,6 +188,7 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
             fil: args.col.clone().to_string(),
             stroke: args.col.clone().to_string(),
             width: args.out,
+            name: Some(args.name),
         },
     ))
 }
@@ -248,7 +258,7 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
             fil: args.col.clone(),
             stroke: args.col,
             width: 0.,
-            ..PolyArgs::default()
+            ..PolyArgs::default(Some("blob".to_string()))
         }, // 0., 0., args.col.clone(), args.col, 0.
     )
 }
@@ -329,17 +339,18 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
 
     let dis = args.dis;
     for i in 0..args.tex {
-        let mid = ((dis(noise)) * reso[1] as f64) as i32 | 0;
-        let h_len = f64::floor(noise.rand() * (reso[1] as f64 * args.len)) as i32;
+        let i_f = i as f64;
+        let mid = (dis(noise) * reso_f[1]) as i32 | 0;
+        let h_len = f64::floor(noise.rand() * (reso_f[1] * args.len)) as i32;
         let start = mid - h_len;
         let end = mid + h_len;
         let u_start = i32::min(i32::max(start, 0), reso[1] as i32) as usize;
         let u_end = i32::min(i32::max(end, 0), reso[1] as i32) as usize;
 
-        let mut layer = (i as f64 / args.tex as f64) * reso_f[0] - 1.;
-        if layer == 0. {
-            println!("layer must not be 0 in Texture ");
-            layer = 0.1;
+        let mut layer = (i_f / args.tex as f64) * (reso_f[0] - 1.);
+        if layer == -1. {
+            println!("layer must not be -1 in Texture ");
+            layer = -1.1;
         }
         let layer_floor = f64::floor(layer) as usize;
         let layer_ceil = f64::ceil(layer) as usize;
@@ -351,8 +362,9 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
 
             let y = pt_list[layer_floor][j].y * p + pt_list[layer_ceil][j].y * (1. - p);
 
-            let ns0 = (args.noi)(layer + 1.) * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
-            let ns1 = (args.noi)(layer + 1.) * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
+            let noi_res = (args.noi)(layer + 1.);
+            let ns0 =  noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
+            let ns1 = noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
             let t_last = tex_list.len() - 1;
             tex_list[t_last].push(Point {
                 x: x + ns0,
@@ -379,7 +391,7 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
                 StrokeArgs {
                     width: args.width,
                     col: color_a(100, 100, 100, 0.1),
-                    ..StrokeArgs::default()
+                    ..StrokeArgs::default("tex-str".to_string())
                 },
             );
             if !s.is_none() {
@@ -401,7 +413,7 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
         let args = StrokeArgs {
                 width: args.width,
                 col: col(noise, j as f64 / t_len as f64),
-                ..StrokeArgs::default()
+                ..StrokeArgs::default("tex-str2".to_string())
         };
         let s = stroke(
             noise,

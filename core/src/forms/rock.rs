@@ -64,7 +64,7 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
         y_off, 
         fil: white(),
         stroke: none_str(),
-        ..PolyArgs::default()
+        ..PolyArgs::default(Some("whit bg rock".to_string()))
     }));
     pt_list[0].pop();
     // 0 0 is only added to the first point list for this poly
@@ -78,7 +78,7 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
         col: color_a(100, 100, 100, 0.3),
         noi: 1.,
         width: 3.,
-        ..StrokeArgs::default()
+        ..StrokeArgs::default("ouln".to_string())
     } ) {
         Some(s) => {
             g = g.add(s);

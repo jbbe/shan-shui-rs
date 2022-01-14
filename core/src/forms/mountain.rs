@@ -4,7 +4,6 @@ use super::*;
 use svg::node::element::{Group};
 use std::collections::{VecDeque};
 use core::f64::consts::PI;
-#[allow(DeadCode)]
 pub struct MountainArgs {
     height: f64,
     width: f64,
@@ -93,6 +92,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                     fil: "white".to_string(),
                     stroke: "none".to_string(),
                     width: 0.,
+                    name: Some("foot".to_string())
                 }
             ));
         }
@@ -115,7 +115,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                         col: color_a(100, 100, 100, 0.1 +(r1 * 0.1)),
                         // col: green(),
                         width: 1.,
-                        ..StrokeArgs::default()
+                        ..StrokeArgs::default("foot-str".to_string())
                     },
                 )
                 .unwrap(),
@@ -247,6 +247,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
             fil: "white".to_string(),
             stroke: "none".to_string(),
             width: 0.,
+            name: Some("wht bg".to_string())
 
         }
     );
@@ -270,7 +271,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                     // col: blue(),
                     noi: 1.,
                     width: 3.,
-                    ..StrokeArgs::default()
+                    ..StrokeArgs::default("outln-str".to_string())
                 },
             )
             .unwrap(),
@@ -460,7 +461,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
         y_off,
         fil: "white".to_string(),
         stroke: "none".to_string(),
-        ..PolyArgs::default()
+        ..PolyArgs::default(Some("f_mnt bg".to_string()))
     }));
 
     // Outline
@@ -472,7 +473,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
             col: color_a(100, 100, 100, 0.3),
             noi: 1.,
             width: 3.,
-            ..StrokeArgs::default()
+        ..StrokeArgs::default("fltmnt outln-str".to_string())
         });
     if !outline.is_none() {
         g= g.add(outline.unwrap());
@@ -548,12 +549,13 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
          y_off, 
          fil: "white".to_string(),
          stroke: "none".to_string(),
-         width: 2. 
+         width: 2.,
+         name: Some("sflt mnt553".to_string())
         }));
     let stro = stroke(noise, &str_pts, StrokeArgs {
             width: 3.,
             col: color_a(100, 100, 100, 0.2),
-            ..StrokeArgs::default()
+            ..StrokeArgs::default("grlst str".to_string())
         } ) ;
     match stro {
         Some(s) => {
@@ -842,7 +844,7 @@ pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Di
             fil: get_col(noise, p.x, p.y),
             stroke: none_str(),
             width: 1. ,
-            ..PolyArgs::default()
+            ..PolyArgs::default(Some("dst mnt".to_string()))
         }));
         //  let t = polytools.triangulate
         // for k in 0..(t.len()) {

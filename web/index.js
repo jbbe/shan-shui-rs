@@ -158,7 +158,7 @@ const MEM = {
   cwid: 511,
   cursx: -1,
   lasttick: -1,
-  windx: 3000,
+  windx: 2000,
   windy: 799,
 };
 
@@ -223,7 +223,7 @@ window.onload = () => {
       // const boat = document.getElementById("boat");
       // boat.onclick = () => getChunk("/boat");
 
-      // const mount = document.getElementById("mount");
+      // const mount = document.getElemxcrentById("mount");
       // mount.onclick = () => getChunk("/mount");
 
       // const downloadButton = document.getElementById("download");
@@ -236,14 +236,14 @@ window.onload = () => {
 
       rPanel.onmouseover = rstyle("R", true);
       rPanel.onmouseout = rstyle("R", false);
-      rPanel.onclick = () => xcroll(200);
+      rPanel.onclick = () => xcroll(1000);
       rstyle("L", false);
 
       const lPanel = document.getElementById("L");
 
       lPanel.onmouseover = rstyle("L", true);
       lPanel.onmouseout = rstyle("L", false);
-      lPanel.onclick = () => xcroll(-200);
+      lPanel.onclick = () => xcroll(-1000);
       rstyle("L", false);
       MEM.lasttick = new Date().getTime();
       document
