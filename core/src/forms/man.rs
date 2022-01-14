@@ -4,6 +4,7 @@ use super::super::Noise;
 use super::super::*;
 // {distance, Noise, Point};
 
+const PI_4 : f64= PI / 4.; 
 pub struct Man {}
 // #[allow(dead_code)]
 pub struct ManArgs {
@@ -17,7 +18,6 @@ pub struct ManArgs {
 
 impl ManArgs {
     pub fn default(n: &mut Noise) -> Self {
-        let PI_4 = PI / 4.;
         Self {
             angle: [
                 0.,

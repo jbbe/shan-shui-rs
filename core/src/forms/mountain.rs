@@ -4,6 +4,7 @@ use super::*;
 use svg::node::element::{Group};
 use std::collections::{VecDeque};
 use core::f64::consts::PI;
+
 pub struct MountainArgs {
     height: f64,
     width: f64,
@@ -793,6 +794,9 @@ pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Di
     let inner_vec_capacity = lower_half_of_vec_capacity + upper_half_of_vec_capacity;
 
     assert_ne!(args.len, 0.);
+
+    let len_over_span = args.len /span;
+
     for i in 0..push_cnt {
         let i_f = i as f64;
         pt_list.push(Vec::with_capacity(inner_vec_capacity));
@@ -800,15 +804,23 @@ pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Di
         pt_list[pt_last].resize(inner_vec_capacity, Point { x: 0., y: 0. });
         for j in 0..upper_half_of_vec_capacity {
             let tran = |noise: &mut Noise, k: f64| {
+                let n = noise.noise(k * 0.05, seed, 0.);
+                let sin_k_over_lenspan = f64::abs(f64::sin(PI * k) / len_over_span);
+                /*
+                * Javascript pow (-x)^2 = x^2
+                * Rust powf returns NaN for x < 0
+                */
+                let pow_res = f64::powf(sin_k_over_lenspan , 0.5);
+                let y = y_off 
+                        - args.height 
+                        * n
+                        * pow_res; 
                 Point {
                     x: x_off + k * span,
-                    y: y_off - args.height * noise.noise(k as f64 * 0.05, seed, 0.) *
-                        f64::powf(f64::sin(PI * k) / (args.len / span), 0.5)
+                    y,                 
                 }
             };
-            let pt_last = pt_list.len() - 1;
-            pt_list[pt_last][lower_half_of_vec_capacity + j] = tran(noise, i_f * args.seg * j as f64 * 2.)
-            // let t = polytools.triangulate(pt_list[i])
+            pt_list[pt_last][lower_half_of_vec_capacity + j] = tran(noise, i_f * args.seg * j as f64)
         }
 
         for j in 0..lower_half_of_vec_capacity {
