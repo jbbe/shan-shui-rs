@@ -19,11 +19,12 @@ pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Grou
     let mut g = Group::new();
     let mut pt_list = Vec::new();
     let mut yk = 0.;
+    let len_4 = args.len / 4.;
     for _ in 0..(args.clu) {
         pt_list.push(Vec::new());
         let xk = (noise.rand() - 0.5) * ((args.len) / 8.);
-        yk = yk + (noise.rand() * 5.);
-        let lk = ((args.len) / 4.) + noise.rand() * (args.len / 4.);
+        yk += noise.rand() * 5.;
+        let lk = len_4 + noise.rand() * len_4;
         let mut j = -lk;
         while j < lk {
             let idx = pt_list.len() - 1;

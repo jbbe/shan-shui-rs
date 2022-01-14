@@ -17,17 +17,18 @@ pub struct ManArgs {
 
 impl ManArgs {
     pub fn default(n: &mut Noise) -> Self {
+        let PI_4 = PI / 4.;
         Self {
             angle: [
                 0.,
                 -PI / 2.,
                 n.norm_rand(0., 0.),
-                (PI / 4.) * n.rand(),
+                PI_4 * n.rand(),
                 ((PI * 3.) / 4.) * n.rand(),
                 (PI * 3.) / 4.,
                 -PI / 4.,
-                (-PI * 3.) / 4. - (PI / 4.) * n.rand(),
-                -PI / 4.,
+                -PI_4 * 4. * n.rand(), // (-PI * 3.) / 4. - (PI / 4.) * n.rand(),
+                -PI_4,
             ],
             ite: |_n, _p0, _p1| Group::new(),
             hat: |p0, p1, f| Man::hat02(p0, p1, f),

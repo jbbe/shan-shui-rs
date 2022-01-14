@@ -151,13 +151,18 @@ impl Noise {
         self.prng.rand()
     }
 
+    /**
+     * ns_list mut not be of length 1
+     */
     pub fn loop_noise(&self, ns_list: &mut Vec<f64>) {
         let dif = ns_list[ns_list.len() - 1] - ns_list[0];
         let mut bds = [100., -100.];
-        let i_lim = ns_list.len();
-        for i in 0..i_lim {
-            ns_list[i] = ns_list[i] * (dif * (ns_list.len() as f64 - 1. - i as f64))
-                / ((ns_list.len() - 1) as f64);
+        let ns_len = ns_list.len();
+        let ns_len_f = ns_len as f64;
+        assert_ne!(1, ns_len);
+        for i in 0..ns_len {
+            let i_f = i as f64;
+            ns_list[i] += (dif * (ns_len_f - 1. - i_f)) / (ns_len_f - 1.) ;
             if ns_list[i] < bds[0] {
                 bds[0] = ns_list[i];
             }
@@ -165,7 +170,7 @@ impl Noise {
                 bds[1] = ns_list[i];
             }
         }
-        for i in 0..i_lim {
+        for i in 0..ns_len {
             ns_list[i] = map_val(ns_list[i], bds[0], bds[1], 0., 1.);
         }
         // ns_list
@@ -288,7 +293,11 @@ fn hash(x: f64) -> u64 {
 //     rand::random::<f64>()
 // }
 
-pub fn map_val(val: f64, i_start: f64, i_stop: f64, o_start: f64, o_stop: f64) -> f64 {
+pub fn map_val(val: f64,
+        i_start: f64, 
+        i_stop: f64,
+        o_start: f64,
+        o_stop: f64) -> f64 {
     o_start + (o_stop - o_start) * (((val - i_start) * 1.0) / (i_stop - i_start))
 }
 
@@ -325,3 +334,24 @@ fn test_noise() {
         println!("i {} noise {}", i, v);
     }
 }
+
+// #[test]
+// fn test_loop_noise() {
+//     let pt_list = vec![
+//         Point { x: 0., y: 0. },
+//         Point { x: 3., y: 3. },
+//         Point { x: 999., y: 999. },
+//     ];
+//     let mut vtx_list0 = vec![
+//         Point { x: 0.1, y: 0.1 },
+//         Point { x: 0.2, y: 0.2 },
+//         Point { x: 0.3, y: 0.3 },
+//     ];
+//     let mut vtx_list1 = vec![
+//         Point { x: 1.1, y: 1.1 },
+//         Point { x: 1.2, y: 1.2 },
+//         Point { x: 1.3, y: 1.3 },
+//     ];
+//     noise
+// }
+

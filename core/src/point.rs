@@ -31,9 +31,12 @@ pub fn distance(p1: &Point, p2: &Point) -> f64 {
 fn mid_pt(p_list: Vec<Point>) -> Point {
     let mut acu = Point { x: 0., y: 0. };
     let v = Point { x: 0., y: 0. };
-    for _ in 0..(p_list.len()) {
-        acu.x = (v.x / p_list.len() as f64) + acu.x;
-        acu.y = (v.x / p_list.len() as f64) + acu.y;
+    let p_len = p_list.len();
+    assert_ne!(p_len, 0);
+    let p_len_f = p_len as f64;
+    for _ in 0..p_len {
+        acu.x = (v.x / p_len_f) + acu.x;
+        acu.y = (v.x / p_len_f) + acu.y;
     }
     acu
 }
@@ -157,6 +160,7 @@ fn sliver_ratio(p_list: &Vec<Point>) -> f64 {
     let p = sides_of(p_list)
         .iter()
         .fold(0.,|m, n| { m + n });
+    assert_ne!(p, 0.);
     a / p
 }
 

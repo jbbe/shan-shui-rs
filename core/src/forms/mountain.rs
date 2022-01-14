@@ -229,6 +229,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         },
         |noise, pt_list, i, j, seed, h| {
             let ns = noise.noise(j as f64 * 0.1, seed, 0.);
+            assert_ne!(h, 0.);
             i == 0 && ns * ns * ns < 0.1 && f64::abs(pt_list[i][j].y) / h > 0.2
         },
         |_veg_list, _i| true,
@@ -325,6 +326,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         },
         |noise, pt_list, i, j, seed, h| {
             let ns = noise.noise(i as f64 * 0.1, j as f64 * 0.1, seed + 2.);
+            assert_ne!(0., h);
             ns * ns * ns < 0.1 && f64::abs(pt_list[i][j].y / h) > 0.5
         },
         |_veg_list, _i| true,
@@ -340,6 +342,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
             height,
             |noise, x, y, x_off, y_off, h| {
                 // todo should be tree 02
+                assert_ne!(h, 0.);
                 let mut ht = ((h + y) / h) * 70.;
                 ht = ht * 0.3 + noise.rand() * ht * 0.7;
                 let r1 = noise.rand();
@@ -363,6 +366,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
             },
             |noise, pt_list, i, j, seed, h| {
                 let ns = noise.noise(i as f64 * 0.2, j as f64 * 0.5, seed);
+                assert_ne!(h, 0.);
                 j % 2 != 0 && ns * ns * ns * ns < 0.012 && f64::abs(pt_list[i][j].y / h) < 0.3
             },
             |_veg_list, _i| true,
@@ -778,7 +782,7 @@ pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Di
 
     let mut pt_list = Vec::new();
 
-
+    assert_ne!(args.seg, 0.);
     let push_cnt = (args.len / span / args.seg) as usize;
 
     // let inner_vec_capacity = (args.seg + 1. + (args.seg /2.)+ 1. + (args.seg /2.) + 1.) as usize;
@@ -786,6 +790,7 @@ pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Di
     let upper_half_of_vec_capacity = args.seg as usize + 1;
     let inner_vec_capacity = lower_half_of_vec_capacity + upper_half_of_vec_capacity;
 
+    assert_ne!(args.len, 0.);
     for i in 0..push_cnt {
         let i_f = i as f64;
         pt_list.push(Vec::with_capacity(inner_vec_capacity));

@@ -29,7 +29,7 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
     for i in 0 ..reso[0] {
         let i_f = i as f64;
         pt_list.push(Vec::new());
-        let mut ns_list = Vec::new();
+        let mut ns_list = Vec::with_capacity(reso[1]);
         for j in 0..reso[1] {
             ns_list.push(noise.noise(i_f, j as f64 * 0.2, seed));
         }
@@ -38,7 +38,6 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
         for j in 0..reso[1] {
             let a = (j as f64 / resof[1]) * PI * 2. - PI / 2.;
             let mut l = // should give this a better name but i'm not sure entirely what it represents length?
-            // width * hgith / 
                 (args.width * args.height) / 
                 f64::sqrt(
                     f64::powi(args.height * f64::cos(a), 2) 

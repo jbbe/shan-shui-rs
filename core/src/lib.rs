@@ -225,12 +225,6 @@ impl State {
             self.plan_mtx.entry(i1).or_insert_with_key(|_k| 0);
             i = i + x_step;
         }
-        // for i in i_x_min..i_x_max.step_by(i_step) {
-        //     let i1 = f64::floor(i / x_step);
-        //     println!("i1 {}", i1);
-        // }
-        // let new_len = f64::floor(x_max / x_step) as usize + 2;
-        // app_state.plan_mtx.resize_with(new_len, || 0);
 
         i = x_min;
         while i < x_max {
@@ -312,48 +306,6 @@ impl State {
         registry
     }
 }
-
-// pub fn gen_svg(seed: f64, draw_background: bool) -> Document {
-//     let mut app_state: State = State::new();
-//     let mut noise = Noise::new(seed);
-//     let resolution = 512.;
-
-//     let mut nodes = Group::new();
-
-//     if draw_background {
-//         let indexes = ((resolution / 2.) + 1.) as usize;
-//         for i in 0..indexes {
-//             for j in 0..indexes {
-//                 let rand_decr = noise.rand() * 255.;
-//                 let c = (245. + noise.noise(i as f64 * 0.1, j as f64 * 0.1 as f64, 0.) * 10.)
-//                     - rand_decr;
-//                 let r = c as u8;
-//                 let g = (c * 0.95) as u8;
-//                 let b = (c * 0.85) as u8;
-
-//                 nodes = nodes
-//                     .add(rect(i as f64, j as f64, 1., 1., r, g, b))
-//                     .add(rect(resolution - i as f64, j as f64, 1., 1., r, g, b))
-//                     .add(rect(i as f64, resolution - j as f64, 1., 1., r, g, b))
-//                     .add(rect(
-//                         resolution - i as f64,
-//                         resolution - j as f64,
-//                         1.,
-//                         1.,
-//                         r,
-//                         g,
-//                         b,
-//                     ));
-//             }
-//         }
-//     }
-
-    // nodes = nodes.add(app_state.gen_chunks(&mut noise, 0., 256.));
-    // Document::new()
-    //     .set("viewbox", (0., 0., resolution, resolution))
-    //     .set("style", "mix-blend-mode:multiply")
-    //     .add(nodes)
-// }
 
 pub fn svg_string(seed: f64) -> String {
     // gen_svg(seed, false).to_string()

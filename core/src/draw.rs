@@ -49,6 +49,7 @@ impl PolyArgs {
             fil: color_a(0, 0, 0, 0.),
             stroke: color_a(0, 0, 0, 0.),
             width: 0.,
+            
         }
     }
 }
@@ -148,10 +149,15 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
             pt_list[i].y - pt_list[i + 1].y,
             pt_list[i].x - pt_list[i + 1].x,
         );
-        let mut a = (a1 + a2) / 2.;
-        if a < a2 {
-            a = a + PI;
-        }
+    //   var a = (a1 + a2) / 2;
+    //   if (a < a2) {
+    //     a += Math.PI;
+    //   }
+        let a = if a2 > a1 {
+           (a1 + a2) / 2. + PI
+        } else { 
+           (a1 + a2) / 2.
+        } ;
         vtx_list0.push(Point {
             x: pt_list[i].x + wb * f64::cos(a),
             y: pt_list[i].y + wb * f64::sin(a),
@@ -248,6 +254,7 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
 }
 /*
 * creates and returns a new vec
+* reso should not be 0
 */
 pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
     let tl = p_list.len() - 1 * (reso as usize);
@@ -329,7 +336,11 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
         let u_start = i32::min(i32::max(start, 0), reso[1] as i32) as usize;
         let u_end = i32::min(i32::max(end, 0), reso[1] as i32) as usize;
 
-        let layer = (i as f64 / args.tex as f64) * reso_f[0] - 1.;
+        let mut layer = (i as f64 / args.tex as f64) * reso_f[0] - 1.;
+        if layer == 0. {
+            println!("layer must not be 0 in Texture ");
+            layer = 0.1;
+        }
         let layer_floor = f64::floor(layer) as usize;
         let layer_ceil = f64::ceil(layer) as usize;
         tex_list.push(Vec::new());
