@@ -1,6 +1,7 @@
 #[macro_use] extern crate nickel;
 
 use nickel::{Nickel};
+use shan_shui::Painting;
 fn main() {
     let mut server = Nickel::new();
     // let mut sessions = std::collections::HashMap::new();
@@ -11,12 +12,23 @@ fn main() {
             res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
             res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
             let seed_str = req.param("seed").unwrap();
-            let seed = seed_str.parse::<f64>().unwrap();
-            let mut painting = shan_shui::Painting::new(seed);
+            let seed = if seed_str == "" {
+                std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .expect("Tim went backwards")
+                        .as_secs_f64()
+
+            } else {
+                seed_str.parse::<f64>().unwrap()
+            };
+
+
+            let mut painting = Painting::new(seed);
+            painting.full_svg( 3000., 1024.)
             // let id = rand::random::<i32>();
             // sessions = sessions.insert(id, painting);
             // shan_shui::svg_string(false)
-            painting.write_svg(1024., 512.)
+            // painting.write_svg(1024., 512.)
         }
         get "/mount/:seed" => |req, mut res| {
             res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);

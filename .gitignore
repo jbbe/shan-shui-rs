@@ -1,3 +1,5 @@
-perf.data
+perf.data*
 */target
 linecounter*
+/target
+out/*

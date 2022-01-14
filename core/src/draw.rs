@@ -494,6 +494,4 @@ fn test_gr_zip() {
     let res = gr_zip(&mut gr_list1, &mut gr_list2);
 
     assert_eq!(correct, res);
-
-      
 }

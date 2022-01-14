@@ -12,4 +12,4 @@ nickel_cors = "0.3.3"
 shan-shui = { path = "../core" }
 
 [profile.release]
-debug = 1
+debug = 0

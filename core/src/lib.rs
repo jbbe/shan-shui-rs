@@ -399,17 +399,26 @@ impl Painting {
         self.chunk_render(x_min, x_max)
     }
 
-    pub fn write_svg(&mut self, width: f64, _height: f64) -> String {
+
+    pub fn full_svg(&mut self, width: f64, height: f64) -> String {
         // println!("Perlins {:?}", self.noise.perlins());
         // let resolution = 512.;
         self.state.gen_chunks(&mut self.noise, 0., width);
-        self.chunk_render(0., width)
+        Self::svg_template(width, height, 0., self.chunk_render(0., width))
         // Document::new()
         //     .set("viewbox", (0., 0., resolution, resolution))
         //     .set("style", "mix-blend-mode:multiply")
         //     .add(self.state.gen_chunks(&mut self.noise, 0., width))
         //     .to_string()
     }
+
+    pub fn svg_template(w: f64, h: f64, x: f64,  svg: String) -> String {
+        vec!["<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='",
+            &w.to_string()[..], "' height='", &h.to_string()[..], "' style='mix-blend-mode:multiply;' viewBox ='",
+            &x.to_string()[..],  &(x + w).to_string()[..], "'><g id='G' transform='translate(0,0)'>", 
+            &svg[..], "</g></svg>"
+            ].join("")
+    } 
     pub fn draw_boat(&mut self) -> String {
         let resolution = 512.;
         Document::new()

@@ -131,7 +131,4 @@ impl PaintingXFace {
         res
     }
 
-    // fn into_abi(self, extra: &mut Stack) -> Self::Abi {
-    //        i
-    // }
 }
