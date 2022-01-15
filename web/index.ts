@@ -4,6 +4,7 @@ const rust = import("./pkg/index_bg");
 
 function getSvgFromAPI(path) {
   const seedInput = document.getElementById("seed");
+  // @ts-ignore
   const seed = seedInput.value;
   return fetch(`http://localhost:6767${path ?? ""}/${seed}`);
 }
@@ -164,18 +165,23 @@ const MEM = {
 
 window.onload = () => {
   rust.then((m) => {
+    // @ts-ignore
     window.rust = m;
     // getChunk()
     try {
       const seedInput = document.getElementById("seed");
+    // @ts-ignore
       const seed = (parseInt(seedInput.value) * new Date()) % 22424023;
+    // @ts-ignore
       seedInput.value = seed;
       seedInput.onchange = (e) => {
+    // @ts-ignore
         let seed = parseFloat(e.target.value);
         console.log("seed", seed);
         m.draw_background(seed);
       };
       const paintingXface = m.init(seed);
+    // @ts-ignore
       function update() {
         // return
         console.log("update!", MEM.cursx, MEM.cursx + MEM.windx, MEM);
@@ -186,6 +192,7 @@ window.onload = () => {
         // console.profileEnd("update")
         document.getElementById("BG").innerHTML = svgTemplate(MEM.windx, MEM.windy, calcViewBox(), svg);
       }
+    // @ts-ignore
       function xcroll(v) {
         console.log("xcroll ", v)
         MEM.cursx += v;
@@ -195,7 +202,9 @@ window.onload = () => {
           viewupdate();
         }
       }
+    // @ts-ignore
       function autoxcroll(v) {
+    // @ts-ignore
         if (document.getElementById("AUTO_SCROLL").checked) {
           xcroll(v);
           setTimeout(function () {
@@ -203,6 +212,7 @@ window.onload = () => {
           }, 1999);
         }
       }
+    // @ts-ignore
       function drawBackground(seed) {
         console.log("drawing background", seed);
         document.getElementsByTagName("body")[0].style.backgroundImage = "";
@@ -234,14 +244,18 @@ window.onload = () => {
 
       const rPanel = document.getElementById("R");
 
+    // @ts-ignore
       rPanel.onmouseover = rstyle("R", true);
+    // @ts-ignore
       rPanel.onmouseout = rstyle("R", false);
       rPanel.onclick = () => xcroll(1000);
       rstyle("L", false);
 
       const lPanel = document.getElementById("L");
 
+    // @ts-ignore
       lPanel.onmouseover = rstyle("L", true);
+    // @ts-ignore
       lPanel.onmouseout = rstyle("L", false);
       lPanel.onclick = () => xcroll(-1000);
       rstyle("L", false);
