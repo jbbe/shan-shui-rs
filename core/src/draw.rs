@@ -25,6 +25,10 @@ pub fn white() -> String {
     // color(255, 255, 255)
 }
 
+pub fn black_a0() -> String {
+    "rgba(0,0,0,0)".to_string()
+    // color(255, 255, 255)
+}
 pub fn none_str() -> String {
     "none".to_string()
 }
@@ -47,8 +51,8 @@ impl PolyArgs {
         Self {
             x_off: 0.,
             y_off: 0.,
-            fil: color_a(0, 0, 0, 0.),
-            stroke: color_a(0, 0, 0, 0.),
+            fil: black_a0(),
+            stroke: black_a0(),
             width: 0.,
             name
         }
@@ -56,8 +60,6 @@ impl PolyArgs {
 }
 
 pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> Polyline {
-    // let mut data = svg::node::element::path::Data::new();
-    // let mut path_data = Rc::new(usvg::PathData::new());
     let p_count = p_list.len();
     let mut p_data = Vec::new();
     p_data.reserve(p_count);
@@ -78,8 +80,6 @@ pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> Polyline {
         None => "n".to_string(),
     };
     let fmtd_pts = p_data.join(" ");
-    // data = data.close();
-    // usvg::Path::()
     Polyline::new()
         .set("name", n)
         .set("fill", args.fil)
@@ -299,10 +299,10 @@ pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
 pub struct TextureArgs {
     pub x_off: f64,
     pub y_off: f64,
-    pub tex: usize,
+    pub density: usize,
     pub width: f64,
     pub len: f64,
-    pub sha: f64,
+    pub shading: f64,
     pub col: fn(&mut Noise, f64) -> String,
     pub noi: fn(f64) -> f64,
     pub dis: fn(&mut Noise) -> f64,
@@ -312,10 +312,10 @@ impl TextureArgs {
         Self {
             x_off: 0.,
             y_off: 0.,
-            tex: 400,
+            density: 400,
             len: 0.2,
             width: 1.5,
-            sha: 0.,
+            shading: 0.,
             col: |n, _| {
                 color_a(180, 180, 180, 0.3 + (n.rand() * 0.3))
             },
@@ -331,14 +331,14 @@ impl TextureArgs {
     }
 }
 
-pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) -> Group {
-    let reso = [pt_list.len(), pt_list[0].len()];
-    let reso_f = [pt_list.len() as f64, pt_list[0].len() as f64];
+pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -> Group {
+    let reso = [layers.len(), layers[0].len()];
+    let reso_f = [layers.len() as f64, layers[0].len() as f64];
     let col = args.col;
     let mut tex_list: Vec<Vec<Point>> = Vec::new();
 
     let dis = args.dis;
-    for i in 0..args.tex {
+    for i in 0..args.density {
         let i_f = i as f64;
         let mid = (dis(noise) * reso_f[1]) as i32 | 0;
         let h_len = f64::floor(noise.rand() * (reso_f[1] * args.len)) as i32;
@@ -347,7 +347,7 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
         let u_start = i32::min(i32::max(start, 0), reso[1] as i32) as usize;
         let u_end = i32::min(i32::max(end, 0), reso[1] as i32) as usize;
 
-        let mut layer = (i_f / args.tex as f64) * (reso_f[0] - 1.);
+        let mut layer = (i_f / args.density as f64) * (reso_f[0] - 1.);
         if layer == -1. {
             println!("layer must not be -1 in Texture ");
             layer = -1.1;
@@ -358,9 +358,9 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
         for j in u_start..u_end {
             let p = layer - f64::floor(layer);
 
-            let x = pt_list[layer_floor][j].x * p + pt_list[layer_ceil][j].x * (1. - p);
+            let x = layers[layer_floor][j].x * p + layers[layer_ceil][j].x * (1. - p);
 
-            let y = pt_list[layer_floor][j].y * p + pt_list[layer_ceil][j].y * (1. - p);
+            let y = layers[layer_floor][j].y * p + layers[layer_ceil][j].y * (1. - p);
 
             let noi_res = (args.noi)(layer + 1.);
             let ns0 =  noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
@@ -376,7 +376,7 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
     let t_len = tex_list.len();
     let mut g = Group::new();
     // shade
-    if args.sha != 0. {
+    if args.shading != 0. {
         for j in 0..t_len {
             let pts = tex_list[j]
                 .iter()
@@ -400,7 +400,7 @@ pub fn texture(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, args: TextureArgs) 
         }
     }
 
-    let u_sha = args.sha as usize;
+    let u_sha = args.shading as usize;
     // texture
     for j in (u_sha..t_len).step_by(1 + u_sha) {
         let pts = tex_list[j]

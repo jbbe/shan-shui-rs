@@ -90,9 +90,9 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
     g = g.add(texture(noise, &pt_list, TextureArgs {
         x_off,
         y_off,
-        tex: args.tex,
+        density: args.tex,
         width: 3.,
-        sha: args.sha,
+        shading: args.sha,
         dis: |n| {
             if n.rand() > 0.5 {
                 0.15 + 0.15 * n.rand()

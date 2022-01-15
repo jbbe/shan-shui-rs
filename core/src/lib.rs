@@ -75,7 +75,7 @@ impl MountainMap {
 
     fn incr_range(&mut self, x_min: f64, x_max: f64) {
         let lower_lim = f64::floor(x_min / self.step) as i32;
-        let upper_lim = f64::floor(x_max/ x_step) as i32;
+        let upper_lim = f64::floor(x_max/ self.step) as i32;
         for k in lower_lim..upper_lim {
             // is this determining the crest of the mountains?
             *(self.data.entry(k).or_insert(0)) += 1;
@@ -92,6 +92,8 @@ const SAMP: f64 = 0.03;
 struct State {
     // represents map of mountain range
     // maybe should call occupied_x
+    // ensures that no flat_mount's center is planned at x under teh existing
+    //  mountain adjusted by randomness
     pub plan_mtx: MountainMap,
     x_min: f64,
     x_max: f64,
@@ -111,6 +113,7 @@ impl State {
     }
 
     fn add_chunk(&mut self, nch: Chunk) {
+        // Our chunks are ordered by their y coordinates
         // don't add if chunks group is empty
         // todo
         if self.chunks.len() == 0 {
@@ -234,7 +237,7 @@ impl State {
         fn chadd(registry: &mut Vec<Plan>, plan: Plan) -> bool {
             chadd_mind(registry, plan, 10.)
         }
-        // ensures that no x is placed at exactly the same line
+        // REgistry ensures that no x is placed on exactly the same line
         let mut registry: Vec<Plan> = Vec::new();
 
 
@@ -244,12 +247,18 @@ impl State {
         // line 3757
         self.plan_mtx.init_plan_mtx_range(x_min, x_max);
 
+        /*
+         * Iterate through currently generated chunk
+         * put a mountain if it is a local max of the smooth perlin noise
+         * mark surrounding space as occupied. once every thousand x's place
+         * a distant mountain.
+         */
         let mut x = x_min;
         while x < x_max {
             // max y?
             let mut y = 0.;
             while y < rand_height(noise, x) * 480. {
-                if local_max(noise, x, y,  2.) {
+                if is_local_max(noise, x, y,  2.) {
                     let x_off = x + 2. * (noise.rand() - 0.5) * 500.;
                     let y_off = y + 300.;
                     let r: Plan = Plan::new(
@@ -268,7 +277,7 @@ impl State {
             if f64::abs(x) % 1000. < 4. {
                 // distmount is only added when i < 4
                 println!("adding distmount");
-                let y = 280. - noise.rand() * 50.,
+                let y = 280. - noise.rand() * 50.;
                 let r = Plan::new(
                     Tag::DistMount,
                     x,
@@ -281,6 +290,10 @@ impl State {
         } // while x
         println!("Xmin {:?} xmax {:?}", x_min, x_max); // 3794
 
+        /*
+        * After moutnains are generated we add a flat mountain
+        * to ~10% of the unoccupied points
+         */
         x = x_min;
         while x < f64::floor(x_max) {
             let idx = f64::floor(x / self.plan_mtx.step) as i32;
@@ -300,6 +313,9 @@ impl State {
             x = x + self.plan_mtx.step;
         } // while x
 
+        /*
+         * Add boats with a 20% chance
+         */
         x = x_min;
         while x < x_max {
             if noise.rand() < 0.2 {
@@ -356,9 +372,9 @@ impl Painting {
         self.chunk_render(x_min, x_max)
     }
 
-    pub fn update_state() -> String {
-        self.update()
-    }
+    // pub fn update_state() -> String {
+    //     self.update()
+    // }
 
 
     pub fn full_svg(&mut self, width: f64, height: f64) -> String {
@@ -400,7 +416,7 @@ impl Painting {
             .to_string()
     }
 }
-fn local_max(
+fn is_local_max(
     noise: &mut Noise,
     x: f64,
     y: f64,

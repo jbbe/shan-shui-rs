@@ -8,7 +8,7 @@ use core::f64::consts::PI;
 pub struct MountainArgs {
     height: f64,
     width: f64,
-    tex: f64,
+    tex: usize,
     veg: bool,
     col: Option<String>,
 }
@@ -21,15 +21,24 @@ impl MountainArgs {
         Self {
             height: 100. + (r1 * 400.), // rand 100-500
             width: 400. + (r2 * 200.), // rand 400-600,
-            tex: 200.,
+            tex: 200,
             veg: true,
             col: None,
         }
     }
 }
 
-// struct Tre
 const ONE_TWO_ARR: [usize; 2] = [1, 2];
+/** Generates several layers.
+ * Each layer is an arc inside of all previous layers
+ * each arc is adjusted by noise.
+ * The outer (0th) layer is used to draw the outline and
+ * the rest of the layers are used for the interior texture.
+ * Vegetate is then called with a variety of functions to 
+ * draw other forms. 
+ * Each form has its own uniqre set of conditions that determine
+ * whether it appear
+ */
 pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: MountainArgs) -> Group {
     fn foot(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, x_off: f64, y_off: f64) -> Group {
         let mut ft_list: Vec<Vec<Point>> = Vec::new();
@@ -90,7 +99,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                 PolyArgs {
                     x_off,
                     y_off,
-                    fil: "white".to_string(),
+                    fil: "pink".to_string(),
                     stroke: "none".to_string(),
                     width: 0.,
                     name: Some("foot".to_string())
@@ -127,7 +136,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
 
     fn vegetate(
         noise: &mut Noise,
-        pt_list: &Vec<Vec<Point>>,
+        layers: &Vec<Vec<Point>>,
         x_off: f64,
         y_off: f64,
         seed: f64,
@@ -147,15 +156,14 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         let mut g = Group::new();
         // might be error in original impl here he uses len straightI
         // /*
-        let i_lim = pt_list.len() - 1;
-        for i in 0..i_lim {
+        for layer_idx in 0..(layers.len()) {
             // same possibl error as above
-            let j_lim = pt_list[i].len() - 1;
-            for j in 0..j_lim {
-                if growth_rule(noise, pt_list, i, j, seed, h) {
+            let j_lim = layers[layer_idx].len() - 1;
+            for pt_idx in 0..j_lim {
+                if growth_rule(noise, layers, layer_idx, pt_idx, seed, h) {
                     veg_list.push(Point {
-                        x: pt_list[i][j].x,
-                        y: pt_list[i][j].x,
+                        x: layers[layer_idx][pt_idx].x,
+                        y: layers[layer_idx][pt_idx].x,
                     });
                 }
             }
@@ -183,23 +191,28 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     let width = args.width;
     // let tex = 200.;
 
-    let mut pt_list: Vec<Vec<Point>> = Vec::new();
-    let reso = [10, 50];
-    let mut hoff = 0.;
+    // Ptlist[0] is the outline of the mountain and
+    // the rest of the vectors are the inner textures
+    let num_layers = 10;
+    let num_pts = 50;
+    let mut layers: Vec<Vec<Point>> = Vec::with_capacity(num_layers);
+    let mut ht_off = 0.;
 
     let mut group = Group::new();
-    for j in 0..reso[0] {
-        hoff += (noise.rand() * y_off) / 100.;
-        pt_list.push(Vec::new());
-        for i in 0..reso[1] {
-            let x = (i as f64 / reso[1] as f64 - 0.5) * PI;
-            let mut y = f64::cos(x);
-            y = y * noise.noise(x + 10., j as f64 * 0.15, seed);
-            let p = 1. - ((j as f64) / (reso[0] as f64));
-            let idx = pt_list.len() - 1;
-            pt_list[idx].push(Point {
-                x: (x / PI) * width * p,
-                y: -y * height * p * hoff,
+    for layer_idx in 0..num_layers {
+        ht_off += (noise.rand() * y_off) / 100.;
+        layers.push(Vec::with_capacity(num_pts));
+        // Expansion will shring from 1 towards 0 so that the line of
+        // each layer is closer to mnt center
+        let expansion = 1. - ((layer_idx as f64) / (num_layers as f64));
+        for pt_idx in 0..num_pts {
+            // tilt ranges from - pi /2 to pi / 2 (-90 -> 90 deg) 
+            let tilt = (pt_idx as f64 / num_pts as f64 - 0.5) * PI;
+            let y = f64::cos(tilt) * noise.noise(tilt + 10., layer_idx as f64 * 0.15, seed);
+            let idx = layers.len() - 1;
+            layers[idx].push(Point {
+                x: (tilt / PI) * width * expansion,
+                y: (-y) * height * expansion * ht_off,
             });
         }
     }
@@ -207,7 +220,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     // Rim
     group = group.add(vegetate(
         noise,
-        &pt_list,
+        &layers,
         x_off,
         y_off,
         seed,
@@ -237,8 +250,8 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     ));
 
     // White background
-    let mut white_pg_pts = pt_list[0].clone();
-    white_pg_pts.push(Point { x: 0., y: reso[0] as f64 * 4.});
+    let mut white_pg_pts = layers[0].clone();
+    white_pg_pts.push(Point { x: 0., y: num_layers as f64 * 4.});
     // println!("poly pts{:?}", poly_pts );
     let white_bg = poly(
         &white_pg_pts,
@@ -255,7 +268,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     group = group.add(white_bg);
 
     // Outline
-    let outline_pts: Vec<Point> = pt_list[0]
+    let outline_pts: Vec<Point> = layers[0]
         .iter()
         .map(|p| Point {
             x: p.x + x_off,
@@ -282,7 +295,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     }
 
     // foot
-    group = group.add(foot(noise, &pt_list, x_off, y_off));
+    group = group.add(foot(noise, &layers, x_off, y_off));
 
     // texture
     let arr = [0., 0., 0., 0., 5.];
@@ -290,12 +303,12 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
 
     group = group.add(texture(
         noise,
-        &pt_list,
+        &layers,
         TextureArgs {
             x_off,
             y_off,
-            tex: 200,
-            sha,
+            density: args.tex,
+            shading: sha,
             // col: args.col,
             ..TextureArgs::default()
         },
@@ -304,7 +317,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     // Top
     group = group.add(vegetate(
         noise,
-        &pt_list,
+        &layers,
         x_off,
         y_off,
         seed,
@@ -337,7 +350,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         // middle
         group = group.add(vegetate(
             noise,
-            &pt_list,
+            &layers,
             x_off,
             y_off,
             seed,
@@ -376,7 +389,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         // Bottom
         .add(vegetate(
             noise,
-            &pt_list,
+            &layers,
             x_off,
             y_off,
             seed,
@@ -515,7 +528,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
     g = g.add(texture(noise, &pt_list, TextureArgs {
             x_off,
             y_off,
-            tex: args.tex,
+            density: args.tex,
             width: 2.,
             dis: |n| {
                 if n.rand() > 0.5 {

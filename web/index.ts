@@ -18,7 +18,7 @@ async function getChunk(path: string) {
   console.log("received chunk appending..");
   const container = document.getElementById("svg-container");
   const div = document.createElement("div");
-  div.innerHTML = svgTemplate(512, 512, calcViewBox(MEM.cursx, MEM.windx, MEM.windy), data);
+  div.innerHTML = svgTemplate(512, 512, calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight), data);
   container.appendChild(div);
 }
 
@@ -73,6 +73,7 @@ function onMouseUpdate(e: MouseEvent) {
 
 function calcViewBox(cursX: number, windX: number, windY: number) {
   var zoom = 1.142;
+  // var zoom = 0.5 // 1.142;
   return "" + cursX + " 0 " + windX / zoom + " " + windY / zoom;
 }
 
@@ -81,7 +82,7 @@ function viewupdate() {
     document
       .getElementById("SVG")
       .setAttribute("viewBox",
-        calcViewBox(MEM.cursx, MEM.windx, MEM.windy));
+        calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight));
   } catch (e) {
     console.log("not possible");
   }
@@ -104,7 +105,7 @@ function rstyle(id: string, b: boolean) {
       "background-color:rgba(-1,0,0," +
       a +
       "); height:" +
-      MEM.windy +
+      CONFIG.windowHeight +
       "px"
     );
 }
@@ -139,14 +140,17 @@ function reloadWSeed(s: number) {
 }
 var btnHoverCol = "rgba(-1,0,0,0.1)";
 
+const CONFIG = {
+  windowWidth: 2000,
+  windowHeight: 800,
+}
+
 const MEM = {
   xmin: -1,
   xmax: -1,
   cwid: 511,
   cursx: -1,
   lasttick: -1,
-  windx: 2000,
-  windy: 800,
 };
 
 window.onload = () => {
@@ -180,13 +184,17 @@ window.onload = () => {
       // @ts-ignore
       function update() {
         // return
-        console.log("update!", MEM.cursx, MEM.cursx + MEM.windx, MEM);
+        console.log("update!", MEM.cursx, MEM.cursx + CONFIG.windowWidth, MEM);
         // console.profile("update")
         console.time("update")
-        let svg = m.update(paintingXface, MEM.cursx, MEM.cursx + MEM.windx);
+        let svg = m.update(paintingXface, MEM.cursx, MEM.cursx + CONFIG.windowWidth);
         console.timeEnd("update")
         // console.profileEnd("update")
-        document.getElementById("BG").innerHTML = svgTemplate(MEM.windx, MEM.windy, calcViewBox(MEM.cursx, MEM.windx, MEM.windy), svg);
+        document.getElementById("BG").innerHTML = svgTemplate(
+          CONFIG.windowWidth, 
+          CONFIG.windowHeight,
+          calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight),
+          svg);
       }
       // @ts-ignore
       function xcroll(v) {
@@ -243,7 +251,7 @@ window.onload = () => {
       MEM.lasttick = new Date().getTime();
       document
         .getElementById("BG")
-        .setAttribute("style", "width:" + MEM.windx + "px");
+        .setAttribute("style", "width:" + CONFIG.windowWidth + "px");
       requestAnimationFrame(() => update());
       document.body.scrollTo(0, 0);
       console.log(["SCROLLX", window.scrollX]);
