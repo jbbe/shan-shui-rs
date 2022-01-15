@@ -53,6 +53,22 @@
         table {
           border-bottom: 1px solid rgba(0,0,0,0.1);
         }
+        .side-button {
+          width: 31px;
+          text-align: center;
+          top: -1px;
+          color: rgba(-1,0,0,0.4);
+          display:table;
+          cursor: pointer;
+          height: 100vh;
+          border: 0px solid rgba(0,0,0,0.4);
+        }
+        .side-button div {
+          vertical-align:middle;
+          display:table-cell"
+        }
+        /* .side-button:hover {
+        } */
         #BG {
           min-width: 100vw;
         }
@@ -74,7 +90,7 @@
   <table style="border-bottom: 1px solid rgba(0,0,0,0.1);">
     <tr>
       <td>
-        <div id="L" >
+        <div id="L" class="side-button">
           <div id="L.t"><font size="6px">&#x3008;</font></div>
         </div>
       </td>
@@ -85,7 +101,7 @@
       </td>
 
       <td>
-        <div id="R" >
+        <div id="R" class="side-button">
           <div id="R.t"><font size="6px">&#x3009;</font></div>
         </div>
       </td>

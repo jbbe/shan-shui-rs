@@ -1,26 +1,24 @@
-import { memory } from "./pkg/index_bg.wasm";
-
 const rust = import("./pkg/index_bg");
 
-function getSvgFromAPI(path) {
+function getSvgFromAPI(path: string) {
   const seedInput = document.getElementById("seed");
   // @ts-ignore
   const seed = seedInput.value;
   return fetch(`http://localhost:6767${path ?? ""}/${seed}`);
 }
 
-const svgTemplate = (w, h, vb, svg) => `<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='${w}'
+const svgTemplate = (w: number, h: number, vb: string, svg: string) => `<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='${w}'
       height='${h}' style='mix-blend-mode:multiply;' viewBox ='${vb}'>
       <g id='G' transform='translate(0,0)'>${svg}</g></svg>`;
 
-async function getChunk(path) {
+async function getChunk(path: string) {
   console.log("requesting chunk", path);
   const resp = await getSvgFromAPI(path);
   const data = await resp.text();
   console.log("received chunk appending..");
   const container = document.getElementById("svg-container");
   const div = document.createElement("div");
-  div.innerHTML = svgTemplate(512, 512, calcViewBox(), data);
+  div.innerHTML = svgTemplate(512, 512, calcViewBox(MEM.cursx, MEM.windx, MEM.windy), data);
   container.appendChild(div);
 }
 
@@ -68,65 +66,53 @@ function download() {
 }
 var mouseX = 0;
 var mouseY = 0;
-function onMouseUpdate(e) {
+function onMouseUpdate(e: MouseEvent) {
   mouseX = e.pageX;
   mouseY = e.pageY;
 }
 
-function calcViewBox() {
+function calcViewBox(cursX: number, windX: number, windY: number) {
   var zoom = 1.142;
-  return "" + MEM.cursx + " 0 " + MEM.windx / zoom + " " + MEM.windy / zoom;
+  return "" + cursX + " 0 " + windX / zoom + " " + windY / zoom;
 }
 
 function viewupdate() {
   try {
-    document.getElementById("SVG").setAttribute("viewBox", calcViewBox());
+    document
+      .getElementById("SVG")
+      .setAttribute("viewBox",
+        calcViewBox(MEM.cursx, MEM.windx, MEM.windy));
   } catch (e) {
     console.log("not possible");
   }
   //setTimeout(viewupdate,100)
 }
-function needupdate() {
-  return true;
-  if (MEM.xmin < MEM.cursx && MEM.cursx < MEM.xmax - MEM.windx) {
-    return false;
-  }
-  return true;
-}
+// function needupdate() {
+//   return true;
+//   if (MEM.xmin < MEM.cursx && MEM.cursx < MEM.xmax - MEM.windx) {
+//     return false;
+//   }
+//   return true;
+// }
 
-function rstyle(id, b) {
+function rstyle(id: string, b: boolean) {
   var a = b ? -1.1 : 0.0;
   document
     .getElementById(id)
     .setAttribute(
       "style",
-      "\
-    width: 31px; \
-    text-align: center;\
-    top: -1px;\
-    color:rgba(-1,0,0,0.4);\
-    display:table;\
-    cursor: pointer;\
-    border: 0px solid rgba(0,0,0,0.4);\
-    background-color:rgba(-1,0,0," +
-        a +
-        ");\
-  " +
-        "height:" +
-        MEM.windy +
-        "px"
+      "background-color:rgba(-1,0,0," +
+      a +
+      "); height:" +
+      MEM.windy +
+      "px"
     );
-  document.getElementById(id + ".t").setAttribute(
-    "style",
-    "vertical-align:middle; display:table-cell"
-    //"position:absolute; top:"+(MEM.windy/1-20)+"px; left:"+(MEM.windx+20)+"px;"
-  );
 }
-function toggleVisible(id) {
+function toggleVisible(id: string) {
   var v = document.getElementById(id).style.display == "none";
   document.getElementById(id).style.display = v ? "block" : "none";
 }
-function toggleText(id, a, b) {
+function toggleText(id: string, a: string, b: string) {
   var v = document.getElementById(id).innerHTML;
   document.getElementById(id).innerHTML = v == "" || v == b ? a : b;
 }
@@ -146,7 +132,7 @@ function present() {
     setTimeout(present, 0);
   }
 }
-function reloadWSeed(s) {
+function reloadWSeed(s: number) {
   var u = window.location.href.split("?")[-1];
   window.location.href = u + "?seed=" + s;
   //window.location.reload(true)
@@ -168,20 +154,30 @@ window.onload = () => {
     // @ts-ignore
     window.rust = m;
     // getChunk()
+
+    function drawBackground(seed: number) {
+      console.log("drawing background", seed);
+      document.getElementsByTagName("body")[0].style.backgroundImage = "";
+      console.time("drawbkgrnd");
+      let img = m.draw_background(seed);
+      console.timeEnd("drawbkgrnd")
+      document.getElementsByTagName("body")[0].style.backgroundImage =
+        "url(" + img + ")";
+    }
     try {
       const seedInput = document.getElementById("seed");
-    // @ts-ignore
+      // @ts-ignore
       const seed = (parseInt(seedInput.value) * new Date()) % 22424023;
-    // @ts-ignore
+      // @ts-ignore
       seedInput.value = seed;
       seedInput.onchange = (e) => {
-    // @ts-ignore
+        // @ts-ignore
         let seed = parseFloat(e.target.value);
         console.log("seed", seed);
         m.draw_background(seed);
       };
       const paintingXface = m.init(seed);
-    // @ts-ignore
+      // @ts-ignore
       function update() {
         // return
         console.log("update!", MEM.cursx, MEM.cursx + MEM.windx, MEM);
@@ -190,38 +186,27 @@ window.onload = () => {
         let svg = m.update(paintingXface, MEM.cursx, MEM.cursx + MEM.windx);
         console.timeEnd("update")
         // console.profileEnd("update")
-        document.getElementById("BG").innerHTML = svgTemplate(MEM.windx, MEM.windy, calcViewBox(), svg);
+        document.getElementById("BG").innerHTML = svgTemplate(MEM.windx, MEM.windy, calcViewBox(MEM.cursx, MEM.windx, MEM.windy), svg);
       }
-    // @ts-ignore
+      // @ts-ignore
       function xcroll(v) {
         console.log("xcroll ", v)
         MEM.cursx += v;
-        if (needupdate()) {
-          update();
-        } else {
-          viewupdate();
-        }
+        // if (needupdate()) {
+        update();
+        // } else {
+        //   viewupdate();
+        // }
       }
-    // @ts-ignore
-      function autoxcroll(v) {
-    // @ts-ignore
-        if (document.getElementById("AUTO_SCROLL").checked) {
-          xcroll(v);
-          setTimeout(function () {
-            autoxcroll(v);
-          }, 1999);
-        }
-      }
-    // @ts-ignore
-      function drawBackground(seed) {
-        console.log("drawing background", seed);
-        document.getElementsByTagName("body")[0].style.backgroundImage = "";
-        console.time("drawbkgrnd");
-        let img = m.draw_background(seed);
-        console.timeEnd("drawbkgrnd")
-        document.getElementsByTagName("body")[0].style.backgroundImage =
-          "url(" + img + ")";
-      }
+      //   function autoxcroll(v) {
+      // // @ts-ignore
+      //     if (document.getElementById("AUTO_SCROLL").checked) {
+      //       xcroll(v);
+      //       setTimeout(function () {
+      //         autoxcroll(v);
+      //       }, 1999);
+      //     }
+      //   }
       requestAnimationFrame(() => drawBackground(Math.random()));
 
       // const addButton = document.getElementById("add");
@@ -244,19 +229,15 @@ window.onload = () => {
 
       const rPanel = document.getElementById("R");
 
-    // @ts-ignore
-      rPanel.onmouseover = rstyle("R", true);
-    // @ts-ignore
-      rPanel.onmouseout = rstyle("R", false);
+      rPanel.onmouseover = () => rstyle("R", true);
+      rPanel.onmouseout = () => rstyle("R", false);
       rPanel.onclick = () => xcroll(1000);
       rstyle("L", false);
 
       const lPanel = document.getElementById("L");
 
-    // @ts-ignore
-      lPanel.onmouseover = rstyle("L", true);
-    // @ts-ignore
-      lPanel.onmouseout = rstyle("L", false);
+      lPanel.onmouseover = () => rstyle("L", true);
+      lPanel.onmouseout = () => rstyle("L", false);
       lPanel.onclick = () => xcroll(-1000);
       rstyle("L", false);
       MEM.lasttick = new Date().getTime();
