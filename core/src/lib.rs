@@ -41,7 +41,6 @@ impl Plan {
         Self { tag, x, y }
     }
 }
-#[allow(dead_code)]
 #[derive(Debug)]
 struct Chunk {
     tag: Tag,
@@ -50,26 +49,67 @@ struct Chunk {
     canv: String,
 }
 
+#[derive(Debug)]
+struct MountainMap {
+    data: HashMap<i32, u32>,
+    pub step: f64,
+}
+
+impl MountainMap {
+    pub fn new() -> Self {
+        Self {
+            data: HashMap::new(),
+            step: 5.
+        }
+    }
+    
+    fn init_plan_mtx_range(&mut self, x_min: f64, x_max: f64) {
+        let mut i = x_min;
+        while i < x_max {
+            let i1 = f64::floor(i / self.step) as i32;
+            // println!("i1 {}", i1);
+            self.data.entry(i1).or_insert_with_key(|_k| 0);
+            i = i + self.step;
+        }
+    }
+
+    fn incr_range(&mut self, x_min: f64, x_max: f64) {
+        let lower_lim = f64::floor(x_min / self.step) as i32;
+        let upper_lim = f64::floor(x_max/ x_step) as i32;
+        for k in lower_lim..upper_lim {
+            // is this determining the crest of the mountains?
+            *(self.data.entry(k).or_insert(0)) += 1;
+        }
+    }
+
+    pub fn is_empty(&self, i: i32) -> bool {
+        self.data[&i] == 0
+    }
+}
+
 const SAMP: f64 = 0.03;
 #[derive(Debug)]
 struct State {
-    pub plan_mtx: HashMap<i32, u32>,
+    // represents map of mountain range
+    // maybe should call occupied_x
+    pub plan_mtx: MountainMap,
     x_min: f64,
     x_max: f64,
-    c_wid: f64,
+    chunk_width: f64,
     pub chunks: VecDeque<Chunk>,
 }
 
 impl State {
     pub fn new() -> Self {
         Self {
-            plan_mtx: HashMap::new(),
+            plan_mtx: MountainMap::new(),
             x_min: 0.,
             x_max: 0.,
-            c_wid: 512.,
+            chunk_width: 512.,
             chunks: VecDeque::new(),
         }
     }
+
     fn add_chunk(&mut self, nch: Chunk) {
         // don't add if chunks group is empty
         // todo
@@ -87,25 +127,21 @@ impl State {
                 }
             }
         }
-
-        // self.chunks.incsert(nch)
     }
-    // fn chadd()
-    // as opposed to creating and saving a 'chunk' like in the js version
-    // load chunk returns a group that contains the svg for this section
+    
     pub fn gen_chunks(&mut self, noise: &mut Noise, x_min: f64, x_max: f64) {
         // let mut g = Group::new();
-        while x_max > self.x_max - self.c_wid || x_min < self.x_min + self.c_wid {
+        while x_max > self.x_max - self.chunk_width || x_min < self.x_min + self.chunk_width {
             println!("Generating new chunk...",);
 
             // generate new chunk
             let plans: Vec<Plan>;
-            if x_max > self.x_max - self.c_wid {
-                plans = self.mount_planner(noise, self.x_max, self.x_max + self.c_wid);
-                self.x_max = self.x_max + self.c_wid;
+            if x_max > self.x_max - self.chunk_width {
+                plans = self.mount_planner(noise, self.x_max, self.x_max + self.chunk_width);
+                self.x_max = self.x_max + self.chunk_width;
             } else {
-                plans = self.mount_planner(noise, self.x_min - self.c_wid, self.x_min);
-                self.x_min = self.x_min - self.c_wid;
+                plans = self.mount_planner(noise, self.x_min - self.chunk_width, self.x_min);
+                self.x_min = self.x_min - self.chunk_width;
             }
 
             let len = plans.len();
@@ -120,7 +156,6 @@ impl State {
                 });
             }
         }
-        // g
     }
 
     fn gen_chunk(noise: &mut Noise, p: &Plan, i: usize) -> Group {
@@ -172,6 +207,7 @@ impl State {
         // }
     }
 
+
     /*
      * Mount planner
      */
@@ -201,107 +237,76 @@ impl State {
         // ensures that no x is placed at exactly the same line
         let mut registry: Vec<Plan> = Vec::new();
 
-        let ns = |noise: &mut Noise, x: f64, _: f64| -> f64 {
-            f64::max(noise.noise(x * SAMP, 0., 0.) - 0.55, 0.) * 2.
-        };
 
-        // let nns = |x: f64, y: f64| {
-        //     1. - noise.noise(x * SAMP, y, 0.)
-        // };
+        let rand_height = |noise: &mut Noise, x| noise.noise(x * 0.01, PI, 0.);
 
-        // let nnns = |x: f64, y: f64 | {
-        //     f64::max(noise.noise(x * SAMP * 2., 2., 0.) - 0.55, 0.) * 2.
-        // };
-
-        let yr = |noise: &mut Noise, x| noise.noise(x * 0.01, PI, 0.);
-
-        let x_step = 5.;
-        let m_wid = 200.;
+        let mnt_width = 200.;
         // line 3757
-        let mut i = x_min;
-        while i < x_max {
-            let i1 = f64::floor(i / x_step) as i32;
-            // println!("i1 {}", i1);
-            self.plan_mtx.entry(i1).or_insert_with_key(|_k| 0);
-            i = i + x_step;
-        }
+        self.plan_mtx.init_plan_mtx_range(x_min, x_max);
 
-        i = x_min;
-        while i < x_max {
-            let mut j = 0.;
-            while j < yr(noise, i) * 480. {
-                if local_max(noise, i, j, ns, 2.) {
-                    let xof = i + 2. * (noise.rand() - 0.5) * 500.;
-                    let yof = j + 300.;
+        let mut x = x_min;
+        while x < x_max {
+            // max y?
+            let mut y = 0.;
+            while y < rand_height(noise, x) * 480. {
+                if local_max(noise, x, y,  2.) {
+                    let x_off = x + 2. * (noise.rand() - 0.5) * 500.;
+                    let y_off = y + 300.;
                     let r: Plan = Plan::new(
                         Tag::Mount,
-                        xof,
-                        yof,
-                        //  ns(noise, i, j)
+                        x_off,
+                        y_off,
                     );
-                    let res = chadd(&mut registry, r);
-                    if res {
-                        let lower_lim = f64::floor((xof - m_wid) / x_step) as i32;
-                        let upper_lim = f64::floor((xof + m_wid) / x_step) as i32;
-                        for k in lower_lim..upper_lim {
-                            // is this determining the crest of the mountains?
-                            *(self.plan_mtx.entry(k).or_insert(0)) += 1;
-                        }
-                    } // for k
-                } // if res
+                    if chadd(&mut registry, r) {
+                        // If we add the plan then we need to increment our map of the mountains
+                        self.plan_mtx.incr_range(x_off - mnt_width, x_off + mnt_width);
+                    } 
+                } 
 
-                j += 30.;
-            } // while j
-            if f64::abs(i) % 1000. < x_step - 1. {
+                y += 30.;
+            } // while y
+            if f64::abs(x) % 1000. < 4. {
                 // distmount is only added when i < 4
                 println!("adding distmount");
-                let r1 = noise.rand();
+                let y = 280. - noise.rand() * 50.,
                 let r = Plan::new(
                     Tag::DistMount,
-                    i,
-                    280. - r1 * 50.,
-                    // ns(noise, i, j)
+                    x,
+                    y
                 );
                 chadd(&mut registry, r);
-            }
+            } // if
 
-            i = i + x_step;
-        }
-        println!("Xmin {:?} xmax {:?}", x_min, x_max);
+            x = x + self.plan_mtx.step;
+        } // while x
+        println!("Xmin {:?} xmax {:?}", x_min, x_max); // 3794
 
-        let mut i = x_min;
-        while i < f64::floor(x_max) {
-            let idx = f64::floor(i / x_step) as i32;
+        x = x_min;
+        while x < f64::floor(x_max) {
+            let idx = f64::floor(x / self.plan_mtx.step) as i32;
             // println!("Xmax {:?} i {:?} idx {:?} step {:?}", x_min, i, idx, x_step);
-            if self.plan_mtx[&idx] == 0 {
-                if noise.rand() < 0.01 {
-                    let mut j = 0.;
-                    while j < (4. * noise.rand()) {
-                        let r = Plan::new(
-                            Tag::FlatMount,
-                            i + 2. * (noise.rand() - 0.5) * 700.,
-                            700. - j * 50.,
-                            // ns(noise, i, j),
-                        );
+            if self.plan_mtx.is_empty(idx) && noise.rand() < 0.01 {
+                let mut y = 0.;
+                while y < (4. * noise.rand()) {
+                    let r = Plan::new(
+                        Tag::FlatMount,
+                        x + (2. * (noise.rand() - 0.5) * 700.),
+                        700. - y * 50.,
+                    );
                         chadd(&mut registry, r);
-                        j = j + 1.;
-                    } // while j
-                }
-            } else {
-                // (commented out in original )
-                // r = tag: greencirc
-                //chadd(r)
+                        y = y + 1.;
+                    } // while y
             }
-            i = i + x_step;
-        } // while i
+            x = x + self.plan_mtx.step;
+        } // while x
 
-        let mut i = x_min;
-        while i < x_max {
+        x = x_min;
+        while x < x_max {
             if noise.rand() < 0.2 {
-                let r = Plan::new(Tag::Boat, i, 300. + noise.rand() * 390.);
+                let r = Plan::new(Tag::Boat, x, 300. + (noise.rand() * 390.));
                 chadd_mind(&mut registry, r, 400.);
             }
-            i = i + x_step;
+            x = x + self.plan_mtx.step;
         }
         registry
     }
@@ -336,8 +341,8 @@ impl Painting {
         let mut canv = vec![];
         // println!("Rendering {:?} chunks", self.state.chunks.len());
         for i in 0..(self.state.chunks.len()) {
-            if x_min - self.state.c_wid < self.state.chunks[i].x &&
-                self.state.chunks[i].x < x_max + self.state.c_wid {
+            if x_min - self.state.chunk_width < self.state.chunks[i].x &&
+                self.state.chunks[i].x < x_max + self.state.chunk_width {
             println!("pushing chunk {}", i);
             canv.push(self.state.chunks[i].canv.to_string());
             }
@@ -349,6 +354,10 @@ impl Painting {
     pub fn update(&mut self, x_min: f64, x_max: f64) -> String {
         self.state.gen_chunks(&mut self.noise, x_min, x_max);
         self.chunk_render(x_min, x_max)
+    }
+
+    pub fn update_state() -> String {
+        self.update()
     }
 
 
@@ -395,10 +404,13 @@ fn local_max(
     noise: &mut Noise,
     x: f64,
     y: f64,
-    f: fn(&mut Noise, f64, f64) -> f64,
+    // f: fn(&mut Noise, f64, f64) -> f64,
     r: f64,
 ) -> bool {
-    let z0 = f(noise, x, y);
+    let f = |x: f64, _: f64| -> f64 {
+        f64::max(noise.noise(x * SAMP, 0., 0.) - 0.55, 0.) * 2.
+    };
+    let z0 = f(x, y);
     if z0 <= 0.3 {
         return false;
     }
@@ -410,7 +422,7 @@ fn local_max(
     while i < max_x {
         let mut j = min_y;
         while j < max_y {
-            if f(noise, i, j) > z0 {
+            if f(i, j) > z0 {
                 return false;
             }
             j += 1.;

@@ -146,7 +146,7 @@ const MEM = {
   cursx: -1,
   lasttick: -1,
   windx: 2000,
-  windy: 799,
+  windy: 800,
 };
 
 window.onload = () => {
