@@ -24,26 +24,29 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
 
     let reso = [10, 50];
     let resof = [10., 50.];
-    let mut pt_list = Vec::new();
+    let mut pt_list = Vec::with_capacity(reso[0]);
 
     for i in 0 ..reso[0] {
         let i_f = i as f64;
-        pt_list.push(Vec::new());
+        pt_list.push(Vec::with_capacity(reso[1]));
         let mut ns_list = Vec::with_capacity(reso[1]);
         for j in 0..reso[1] {
             ns_list.push(noise.noise(i_f, j as f64 * 0.2, seed));
         }
         noise.loop_noise(&mut ns_list);
 
+        let pt_last = pt_list.len() - 1;
         for j in 0..reso[1] {
-            let a = (j as f64 / resof[1]) * PI * 2. - PI / 2.;
-            let mut l = // should give this a better name but i'm not sure entirely what it represents length?
-                (args.width * args.height) / 
+            let a = (j as f64 / resof[1]) * PI * 2. - (PI / 2.);
+            let l = // should give this a better name but i'm not sure entirely what it represents length?
+                ((args.width * args.height) / 
                 f64::sqrt(
                     f64::powi(args.height * f64::cos(a), 2) 
-                        * f64::powi(args.width * f64::sin(a), 2));
-            l *= 0.7 + 0.3 * ns_list[j];
-            let p = 1. - (i_f / resof[0]) ;
+                        * f64::powi(args.width * f64::sin(a), 2)))
+                * 0.7 + 0.3 * ns_list[j];
+
+            let p = 1. - (i_f / resof[0]);
+
             let nx = f64::cos(a) * l * p;
             let mut ny = -1. * f64::sin(a) * l * p;
 
@@ -52,8 +55,7 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
             }
             ny += args.height * (i_f / resof[0]) * 0.2;
 
-            let pt_lst = pt_list.len() - 1;
-            pt_list[pt_lst].push(Point { x: nx, y: ny });
+            pt_list[pt_last].push(Point { x: nx, y: ny });
        }
     }
 
@@ -78,7 +80,7 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
         col: color_a(100, 100, 100, 0.3),
         noi: 1.,
         width: 3.,
-        ..StrokeArgs::default("ouln".to_string())
+        ..StrokeArgs::default("rockouln".to_string())
     } ) {
         Some(s) => {
             g = g.add(s);

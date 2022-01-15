@@ -15,8 +15,7 @@ pub struct TreeArgs {
 }
 
 impl TreeArgs {
-
-    pub fn tree1_default() -> Self {
+    pub fn default01() -> Self {
         Self {
             height: 50.,
             width: 3.,
@@ -25,6 +24,27 @@ impl TreeArgs {
             noi: 0.5,
         }
     }
+
+    pub fn default02() -> TreeArgs {
+        TreeArgs {
+            height: 16.,
+            width: 8.,
+            clu: 5.,
+            col: "rgba(100,100,100,0.5)".to_string(),
+            noi: 0.5,
+        }
+    }
+
+    pub fn default03(noise: &mut Noise) -> TreeArgs {
+        TreeArgs {
+            height: 50.,
+            width: 5.,
+            clu: 5.,
+            col: "rgba(100,100,100,0.5)".to_string(),
+            noi: 0.5,
+        }
+    }
+
 }
 pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
     let reso = 10;
@@ -48,10 +68,10 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
             for _ in 0..j_limm {
                 let r1 = noise.rand();
                 let r2 = noise.rand();
-                let r3= noise.rand();
-                let r4= noise.rand();
-                let r5= noise.rand();
-                let r6= noise.rand();
+                let r3 = noise.rand();
+                let r4 = noise.rand();
+                let r5 = noise.rand();
+                let r6 = noise.rand();
                 g = g.add(blob(
                     noise,
                     nx + (r1 - 0.5) * args.width * 1.2 * (reso - i) as f64,
@@ -90,24 +110,16 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
             // args.col.clone(),
             // 1.5,
         ))
-        .add(poly(&line2, PolyArgs {
-            fil: "none".to_string(), 
-            stroke: args.col,
-            width: 1.5,
-            ..PolyArgs::default(Some("tree01 p2".to_string()))
-        }
-    ));
+        .add(poly(
+            &line2,
+            PolyArgs {
+                fil: "none".to_string(),
+                stroke: args.col,
+                width: 1.5,
+                ..PolyArgs::default(Some("tree01 p2".to_string()))
+            },
+        ));
     g
-}
-
-pub fn default_tree2_args() -> TreeArgs {
-    TreeArgs {
-        height: 16.,
-        width: 8.,
-        clu: 5.,
-        col: "rgba(100,100,100,0.5)".to_string(),
-        noi: 0.5,
-    }
 }
 
 pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
@@ -124,8 +136,8 @@ pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
             y + rg2 * args.clu * 4.,
             BlobArgs {
                 angle: PI / 2.,
-                // col: color_a(100, 100, 100, 0.8),
-                col: args.col.to_string(),
+                col: color_a(100, 100, 100, 0.8),
+                // col: args.col.to_string(),
                 // default fun
                 width: r1 * (args.width * 0.75) + (args.width * 0.5),
                 len: r2 * (args.height * 0.75) + (args.height * 0.5),
@@ -135,3 +147,79 @@ pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
     }
     g
 }
+
+
+
+pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
+    let bc = noise.rand() * 0.1;
+    let bp = 1;
+    let ben = | x: f64| -> f64 {
+        // this comes from vegetate mountain bottom the only place tree03 is called
+        x * bc
+    };
+
+    let mut g = Group::new();
+    let reso = 10;
+    let resof = 10.;
+    // let ns_list = [Point; 10; Point { x: 0, y: 0} ];
+    let ns_list : Vec<Point> = (0..reso).map(|i| {
+        let x = noise.noise(i as f64 * 0.5, 0., 0.);
+        let y = noise.noise(i as f64 * 0.5, 0.5, 0.);
+        Point { x, y }
+    }).collect();
+    let leafcol = [100, 100, 100, 100];
+
+    // let blobs = 
+    let mut line1 = vec![];
+    let mut line2 = vec![];
+    for i in 0..reso {
+        let i_f = i as f64;
+        let nx = x + ben(i_f / resof) * 100.;
+        let ny = y - (i_f * args.height) / reso as f64;
+        if i >= reso / 5 {
+            for j in 0..((reso - i) * 2) {
+                let shape = |x| {
+                    f64::log(50. * x + 1., std::f64::consts::E) / 3.95
+                };
+                let ox = noise.rand() * args.width * shape((resof - i_f) / resof);
+                let r_choice = noise.rand_choice_arrf(&[-1., 1.]);
+                let r1 = noise.rand() - 0.5 * args.width * 2.;
+                let width = noise.rand() * 6. -  3.;
+                let angle = (noise.rand() - 0.5) * PI / 6.;
+                let r2 = noise.rand();
+                g = g.add(blob(
+                    noise,
+                    nx + ox * r_choice,
+                    ny + r1,
+                    BlobArgs {
+                        len: ox + 2.,
+                        width,
+                        angle,
+                        col: color_a(leafcol[1], leafcol[1], leafcol[2], r2 * 0.2 ), // som
+                        ..BlobArgs::default()
+                    }
+
+                ))
+                
+            }
+        }
+        line1.push(Point {
+            x: nx + ((ns_list[0].x - 0.5) * args.width + (args.width / 2.)) * (resof - i_f) / resof,
+            y: ny
+        });
+        line2.push(Point {
+            x: nx + ((ns_list[0].y - 0.5) * args.width + (args.width / 2.)) * (resof - i_f) / resof,
+            y: ny
+        });
+    }
+    line2.reverse();
+    line1.append(&mut line2);
+    g = g.add(poly(&line1, PolyArgs {
+        fil: white(),
+        stroke: args.col,
+        width: 1.5,
+        ..PolyArgs::default(Some("tree03".to_string()))
+    }));
+    g
+}
+

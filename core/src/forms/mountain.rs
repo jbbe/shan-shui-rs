@@ -203,7 +203,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
             });
         }
     }
-    // fn tree_func
+    
     // Rim
     group = group.add(vegetate(
         noise,
@@ -224,7 +224,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                         100,
                         noise.noise(0.01 * x, 0.01 * y, 0.) * 0.5 * 0.3 + 0.5,
                     ),
-                    ..TreeArgs::tree1_default()
+                    ..TreeArgs::default01()
                 },
             )
         },
@@ -322,7 +322,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                         100,
                         noise.noise(0.01 * x, 0.01 * y, 0.) * 0.5 * 0.3 + 0.5,
                     ),
-                    ..default_tree2_args()
+                    ..TreeArgs::default02()
                 },
             )
         },
@@ -362,7 +362,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                             100,
                             noise_val * 0.5 * 0.3 + 0.3,
                         ),
-                        ..default_tree2_args()
+                        ..TreeArgs::default02()
                     },
                 )
             },
@@ -372,8 +372,42 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                 j % 2 != 0 && ns * ns * ns * ns < 0.012 && f64::abs(pt_list[i][j].y / h) < 0.3
             },
             |_veg_list, _i| true,
+        ))
+        // Bottom
+        .add(vegetate(
+            noise,
+            &pt_list,
+            x_off,
+            y_off,
+            seed,
+            height,
+            |noise, x, y, x_off, y_off, h| -> Group {
+                let _ht = ((h + y) / h) * 120.;
+                let ht = _ht * 0.5 + noise.rand() * _ht * 0.5;
+                let args = TreeArgs {
+                    height: ht,
+                    col: color_a(100, 100,100, noise.noise(0.01 * x, 0.01 * y, 0.) * 0.5 * 0.3 + 0.3),
+                    ..TreeArgs::default03(noise)
+                } ;
+                tree03(noise, x + x_off, y + y_off, args)
+            },
+            |noise, pt_list, i, j, seed, h| {
+                let ns = noise.noise(i as f64 * 0.2, j as f64 * 0.5, seed);
+                assert_ne!(h, 0.);
+                (j == 0 || j == pt_list[i].len() - 1) && ns * ns * ns * ns < 0.012 
+            },
+            |_veg_list, _i| true,
         ));
     }
+
+    // bottom arch
+    // vegetate 
+
+    // top arch
+
+    // transm
+
+    // bott rock
     group
 }
 
@@ -428,7 +462,6 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
                 ny = -h * args.cho + hoff;
                 let flat_last = flat.len() - 1;
                 if flat[flat_last].len() % 2 == 0 {
-                    let val = vec!([nx, ny]);
                     flat[flat_last].push(Point { x: nx, y: ny });
                 }
             } else {
@@ -754,7 +787,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> G
         // add tree02
         let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
         let y = y_off + noise.norm_rand(gr_bound.y_min, gr_bound.y_max);
-        g = g.add(tree02(noise, x, y, TreeArgs::tree1_default())); // FIXME ( default args for tree2)
+        g = g.add(tree02(noise, x, y, TreeArgs::default01())); // FIXME ( default args for tree2)
 
         i += 1.;
     }
