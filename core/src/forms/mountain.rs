@@ -3,11 +3,11 @@ use super::super::*;
 use super::*;
 use core::f64::consts::PI;
 use std::collections::VecDeque;
-
+#[allow(dead_code)]
 pub struct MountainArgs {
     height: f64,
     width: f64,
-    tex: usize,
+    tex_density: usize,
     veg: bool,
     col: Option<String>,
 }
@@ -20,7 +20,7 @@ impl MountainArgs {
         Self {
             height: 100. + (r1 * 400.), // rand 100-500
             width: 400. + (r2 * 200.),  // rand 400-600,
-            tex: 200,
+            tex_density: 200,
             veg: true,
             col: None,
         }
@@ -44,6 +44,7 @@ pub fn mountain(
     seed: f64,
     args: MountainArgs,
 ) -> String {
+    #[allow(unused)]
     fn foot(noise: &mut Noise, layers: &Vec<Vec<Point>>, x_off: f64, y_off: f64) -> String {
         let mut ft_layers: Vec<Vec<Point>> = Vec::new();
         let span = 10;
@@ -189,8 +190,8 @@ pub fn mountain(
         g.to_string()
     }
 
-    let height = args.height;
-    let width = args.width;
+    let h = args.height;
+    let w = args.width;
 
     // Ptlist[0] is the outline of the mountain and
     // the rest of the vectors are the inner textures
@@ -200,8 +201,7 @@ pub fn mountain(
     let mut ht_off = 0.;
     let layers = (0..num_layers).map(|layer_idx| {
             ht_off += (noise.rand() * y_off) / 100.;
-            // Expansion will shrink from 1 towards 0 so that the line of
-            // each layer is closer to mnt center
+            // Expansion will shrink from 1 towards 0 as we approach the final layer
             let expansion = 1. - ((layer_idx as f64) / (num_layers as f64));
             // println!("Layer {}", layer_idx);
             (0..num_pts)
@@ -210,8 +210,8 @@ pub fn mountain(
                     let y = tilt.cos() * noise.noise(tilt + 10., layer_idx as f64 * 0.15, seed);
                     // println!("x (tilt) {} y {} expansin {}", tilt, y, expansion);
                     Point {
-                        x: (tilt / PI) * width * expansion,
-                        y: (-y) * height * expansion * ht_off,
+                        x: (tilt / PI) * w * expansion,
+                        y: (-y) * h * expansion + ht_off,
                     }
                 }).collect()
         }).collect();
@@ -224,7 +224,7 @@ pub fn mountain(
         x_off,
         y_off,
         seed,
-        height,
+        h,
         |noise, x, y, x_off, y_off, _| {
             tree01(
                 noise,
@@ -270,7 +270,6 @@ pub fn mountain(
     ));
 
     // Outline
-    // let outline_pts: Vec<Point> = 
     group.add(stroke(
         noise,
         &(layers[0].iter()
@@ -290,13 +289,12 @@ pub fn mountain(
 
     // texture
     let shading = noise.rand_choice_arrf(&[0., 0., 0., 0., 5.]);
-    group.add(texture(
-        noise,
+    group.add(texture(noise,
         &layers,
         TextureArgs {
             x_off,
             y_off,
-            density: args.tex,
+            density: args.tex_density,
             shading,
             // col: args.col,
             col: |_n, _y| "green".to_string(),
@@ -311,7 +309,7 @@ pub fn mountain(
         x_off,
         y_off,
         seed,
-        height,
+        h,
         |noise, x, y, x_off, y_off, _| {
             // todo should be tree 02
             tree02(
@@ -345,7 +343,7 @@ pub fn mountain(
             x_off,
             y_off,
             seed,
-            height,
+            h,
             |noise, x, y, x_off, y_off, h| {
                 // todo should be tree 02
                 assert_ne!(h, 0.);
@@ -379,7 +377,7 @@ pub fn mountain(
             x_off,
             y_off,
             seed,
-            height,
+            h,
             |noise, x, y, x_off, y_off, h| -> String {
                 let _ht = ((h + y) / h) * 120.;
                 let ht = _ht * 0.5 + noise.rand() * _ht * 0.5;
@@ -438,7 +436,6 @@ impl FlatMountArgs {
 }
 
 pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs) -> String {
-    let mut g = Group::new("flatmnt".to_string());
 
     let mut pt_list: Vec<Vec<Point>> = Vec::new();
     let mut flat: Vec<Vec<Point>> = Vec::new();
@@ -496,6 +493,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
     };
     let mut bg_pts = pt_list[0].clone();
     bg_pts.push(end_p);
+    let mut g = Group::new("flatmnt".to_string());
     g.add(poly(
         &bg_pts,
         PolyArgs {
@@ -515,8 +513,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
             y: p.y + y_off,
         })
         .collect();
-    g.add(stroke(
-        noise,
+    g.add(stroke(noise,
         &outln_pts,
         StrokeArgs {
             col: color_a(100, 100, 100, 0.3),
@@ -525,8 +522,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
             ..StrokeArgs::default("fltmnt outln-str".to_string())
         },
     ));
-    g.add(texture(
-        noise,
+    g.add(texture(noise,
         &pt_list,
         TextureArgs {
             x_off,
@@ -615,8 +611,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
             name: Some("sflt mnt553".to_string()),
         },
     ));
-    g.add(stroke(
-        noise,
+    g.add(stroke(noise,
         &str_pts,
         StrokeArgs {
             width: 3.,
@@ -663,7 +658,7 @@ pub fn bound(p_list: Vec<Point>) -> Bound {
         y_max,
     }
 }
-
+#[allow(dead_code)]
 pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> String {
     let mut g = Group::new("flat dec".to_string());
 
@@ -751,8 +746,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> S
             let seed = noise.rand() * 100.;
             let width = 50. + noise.rand() * 20.;
             let height = 40. + noise.rand() * 20.;
-            g.add(rock(
-                noise,
+            g.add(rock(noise,
                 x,
                 y,
                 seed,
@@ -825,7 +819,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> S
     g.to_string()
 }
 pub struct DistMountArgs {
-    pub(crate) height: f64,
+    pub height: f64,
     pub len: f64,
     pub seg: f64,
 }

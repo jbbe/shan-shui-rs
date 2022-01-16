@@ -114,7 +114,7 @@ impl State {
     fn add_chunk(&mut self, nch: Chunk) {
         // Our chunks are ordered by their y coordinates
         // don't add if chunks group is empty
-        // todo
+        // todo I think the sorting by why lets the shorter mountains be rendered on top
         if self.chunks.len() == 0 {
             self.chunks.push_back(nch);
         } else if nch.y <= self.chunks[0].y {

@@ -192,8 +192,7 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Stri
 
     let vtx_list = stroke_zip(&pt_list, &mut vtx_list0, &mut vtx_list1);
 
-    poly(
-        &vtx_list,
+    poly(&vtx_list,
         PolyArgs {
             x_off: args.x_off,
             y_off: args.y_off,
@@ -235,34 +234,31 @@ impl BlobArgs {
 
 pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> String {
     let reso = 20.;
-    let mut la_list = Vec::new();
     let i_lim = reso as usize + 1;
-    for i in 0..i_lim {
+    let la_list: Vec<Point> = (0..i_lim).map(|i| {
         let p = (i as f64 / reso) * 2.;
         let xo = (args.len / 2.) - f64::abs(p - 1.) * args.len;
         let yo = ((args.fun)(p) * args.width) / 2.;
         let a = f64::atan2(yo, xo);
         let l = f64::sqrt((xo * xo) + (yo * yo));
-        la_list.push(Point { x: l, y: a });
-    }
-    let mut ns_list = Vec::new();
+        Point { x: l, y: a }
+    }).collect();
+    
     let n0 = noise.rand() * 10.;
-
-    for i in 0..i_lim {
-        ns_list.push(noise.noise(i as f64 * 0.05, n0, 0.));
-    }
+    let mut ns_list = (0..i_lim).map(|i| {
+        noise.noise(i as f64 * 0.05, n0, 0.)
+    }).collect();
 
     // ns_list =
     noise.loop_noise(&mut ns_list);
 
-    let mut p_list = Vec::new();
     let la_len = la_list.len();
-    for i in 0..la_len {
+    let p_list = (0..la_len).map(|i| {
         let ns = ns_list[i] * args.noi + (1. - args.noi);
         let nx = x + f64::cos(la_list[i].y + args.angle) * la_list[i].x * ns;
         let ny = y + f64::sin(la_list[i].y + args.angle) * la_list[i].x * ns;
-        p_list.push(Point { x: nx, y: ny });
-    }
+        Point { x: nx, y: ny }
+    }).collect();
 
     poly(&p_list,
         PolyArgs {
@@ -310,7 +306,7 @@ pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
 pub struct TextureArgs {
     pub x_off: f64,
     pub y_off: f64,
-    pub density: usize,
+    pub density: usize, // (tex) texture density
     pub width: f64,
     pub len: f64,
     pub shading: f64,
@@ -333,9 +329,9 @@ impl TextureArgs {
             noi: |x| 30. / x,
             dis: |noise: &mut Noise| {
                 if noise.rand() <= 0.5 {
-                    (1. / 3.) * noise.rand()
+                    (1. / 3.) * noise.rand() // <= 1/3
                 } else {
-                    (2. / 3.) + (1. / 3.) * noise.rand() // ??? orignal make so sense beyond just being rand
+                    (2. / 3.) + (1. / 3.) * noise.rand() // 2/3  >= x  <= 1
                 }
             },
         }
@@ -353,10 +349,9 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
     let tex_layers: Vec<Vec<Point>> = (0..args.density).map(|i| {
         let mid = (dis(noise) * pt_cntf) as i32 | 0;
         let h_len = (noise.rand() * (pt_cntf * args.len)).floor() as i32;
-        let start = mid - h_len;
-        let end = mid + h_len;
-        let u_start = i32::min(i32::max(start, 0), pt_cnt as i32) as usize;
-        let u_end = i32::min(i32::max(end, 0), pt_cnt as i32) as usize;
+        // start and end are bound by 0 -> pt_cnt
+        let start = (mid - h_len).max(0).min(pt_cnt as i32) as usize;
+        let end = (mid + h_len).max(0).min(pt_cnt as i32) as usize;
 
         let mut layer = (i as f64 / args.density as f64) * (layers.len() as f64 - 1.);
         if (layer - -1.).abs() < 0.001 {
@@ -367,7 +362,7 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
         let lay_floor = layer.floor() as usize;
         let lay_ceil = layer.ceil() as usize;
 
-        (u_start..u_end).map(|j| {
+        (start..end).map(|j| {
             let deci = layer - layer.floor();
             let x = layers[lay_floor][j].x * deci + 
                          layers[lay_ceil][j].x * (1. - deci);
