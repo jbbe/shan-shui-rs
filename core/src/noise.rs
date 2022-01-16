@@ -224,48 +224,37 @@ impl Noise {
 */
 
 pub struct Prng {
-    s: u64,
-    p: u64,
-    q: u64,
-    m: u64,
+    s: f64,
+    p: f64,
+    q: f64,
+    m: f64,
 }
 
 impl Prng {
     pub fn new() -> Self {
-        let p = 999979; //9887//983
-        let q = 999983; //9967//991
+        let p = 999979.; //9887//983
+        let q = 999983.; //9967//991
         let m = p * q;
-        Self { s: 1234, p, q, m }
+        Self { s: 1234., p, q, m }
     }
 
-    // pub fn seed_t(&mut self) {
-    //     let x = wasm_timer::Instant::now()
-    //     // let x = std::time::SystemTime::now()
-    //         .duration_since(wasm::timer::Instant::new(wasm_timer::UNIX_EPOCH))
-    //         // .expect("Tim went backwards")
-    //         .as_secs_f64();
-    //     self.seed(x);
-    //     ()
-    // }
-
     pub fn seed(&mut self, x: f64) {
-        let mut y = 0;
-        let mut z = 0;
-        while y % self.p == 0 || y % self.q == 0 || y == 0 || y == 1 {
+        let mut y = 0.;
+        let mut z = 0.;
+        while (y % self.p).floor() == 0. || (y % self.q).floor() == 0. || y == 0. || y == 1. {
             // this is called the redo function in js
             y = (hash(x) + z) % self.m;
-            z = z + 1;
+            z += 1.;
         }
         self.s = y;
         println!("int seed {}", self.s);
-        for _ in 0..10 {
-            self.next();
-        }
+        for _ in 0..10 { self.next(); }
         ()
     }
 
     fn next(&mut self) -> f64 {
-        self.s = self.s.wrapping_mul(self.s) % self.m;
+        let s_f = self.s as f64;
+        self.s = (s_f * s_f) % self.m ;
         (self.s as f64) / (self.m as f64)
     }
 
@@ -275,23 +264,16 @@ impl Prng {
  
 }
 // Not sure what j
-fn hash(x: f64) -> u64 {
+fn hash(x: f64) -> f64 {
     let x_str = x.to_string();
-    let b64 = base64::encode(x_str);
-    let chars: Vec<char> = b64.chars().collect();
+    let chars: Vec<char> = base64::encode(x_str).chars().collect();
     let mut z = 0.;
-    let lim = chars.len();
-    for i in 0..lim {
+    for i in 0..(chars.len()) {
         let c = chars[i] as u64;
-        let c_f = c as f64;
-        z = z + (c_f * f64::powi(128., i as i32));
+        z += (c as f64) * 128.0_f64.powi(i as i32);
     }
-    z as u64
+    z
 }
-
-// pub fn _rand() -> f64 {
-//     rand::random::<f64>()
-// }
 
 pub fn map_val(val: f64,
         i_start: f64, 
@@ -304,13 +286,13 @@ pub fn map_val(val: f64,
 #[test]
 fn hash_test() {
     let a = hash(1.2);
-    let a_corr = 254618061;
+    let a_corr = 254618061.;
 
     // let a_diff = if a_corr > a_diff { a_corr - a_diff } else { a_diff - a_corr }
     assert_eq!(a_corr, a);
 
     let b = hash(3.);
-    let b_corr = 128941005;
+    let b_corr = 128941005.;
     println!("b({})", b);
 
     assert_eq!(b_corr, b);
@@ -325,7 +307,6 @@ fn rand_is_normal() {
     }
 }
 #[test]
-
 fn test_noise() {
     let noise = Noise::new(777777.938);
     for i in 0..200 {
@@ -334,6 +315,11 @@ fn test_noise() {
         println!("i {} noise {}", i, v);
     }
 }
+
+// #[test]
+// fn source_test() {
+//     let noise = Noise.noise()
+// }
 
 // #[test]
 // fn test_loop_noise() {

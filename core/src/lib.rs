@@ -40,6 +40,7 @@ impl Plan {
     }
 }
 #[derive(Debug)]
+#[allow(dead_code)]
 struct Chunk {
     tag: Tag,
     x: f64,
@@ -332,7 +333,6 @@ impl Painting {
         Self {
             state: State::new(),
             noise: Noise::new(seed),
-            // canv: String::new(),
         }
     }
 
@@ -370,7 +370,7 @@ impl Painting {
             "' style='mix-blend-mode:multiply;' viewBox ='",
             &x.to_string()[..],
             &(x + w).to_string()[..],
-            "'><g id='G' transform='translate(0,0)'>",
+            "'><g id='G'>",
             &svg[..],
             "</g></svg>",
         ]

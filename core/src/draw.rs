@@ -92,7 +92,7 @@ pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> String {
     let p_data: Vec<String> = p_list.iter().map(|p| {
         let x = p.x + args.x_off;
         let y = p.y + args.y_off;
-        format!("{:.2}, {:.2}", x, y)
+        format!("{:.1},{:.1}", x, y)
     }).collect();
     let n = match args.name {
         Some(s) => s,
@@ -343,43 +343,40 @@ impl TextureArgs {
 }
 
 pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -> String {
-    let layer_cnt = layers.len();
     let pt_cnt = layers[0].len();
-    let layer_cntf = layer_cnt as f64;
     let pt_cntf = pt_cnt as f64;
-
     let col = args.col;
-
     let dis = args.dis;
+    /*
+     * tex_layers are not necessarily all the same length
+     */
     let tex_layers: Vec<Vec<Point>> = (0..args.density).map(|i| {
-
-        let i_f = i as f64;
         let mid = (dis(noise) * pt_cntf) as i32 | 0;
-        let h_len = f64::floor(noise.rand() * (pt_cntf * args.len)) as i32;
+        let h_len = (noise.rand() * (pt_cntf * args.len)).floor() as i32;
         let start = mid - h_len;
         let end = mid + h_len;
         let u_start = i32::min(i32::max(start, 0), pt_cnt as i32) as usize;
         let u_end = i32::min(i32::max(end, 0), pt_cnt as i32) as usize;
 
-        let mut layer = (i_f / args.density as f64) * (layer_cntf - 1.);
-        if layer == -1. {
-            println!("layer must not be -1 in Texture ");
+        let mut layer = (i as f64 / args.density as f64) * (layers.len() as f64 - 1.);
+        if (layer - -1.).abs() < 0.001 {
+            println!("layer must not be -1 in Texture "); // args.noi cannot accept -1
             layer = -1.1;
         }
 
-        let layer_floor = f64::floor(layer) as usize;
-        let layer_ceil = f64::ceil(layer) as usize;
+        let lay_floor = layer.floor() as usize;
+        let lay_ceil = layer.ceil() as usize;
 
         (u_start..u_end).map(|j| {
-            let p = layer - f64::floor(layer);
-
-            let x = layers[layer_floor][j].x * p + layers[layer_ceil][j].x * (1. - p);
-            let y = layers[layer_floor][j].y * p + layers[layer_ceil][j].y * (1. - p);
+            let deci = layer - layer.floor();
+            let x = layers[lay_floor][j].x * deci + 
+                         layers[lay_ceil][j].x * (1. - deci);
+            let y = layers[lay_floor][j].y * deci +
+                         layers[lay_ceil][j].y * (1. - deci);
 
             let noi_res = (args.noi)(layer + 1.);
             let ns0 =  noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
             let ns1 = noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
-
             Point { x: x + ns0, y: y + ns1 }
         }).collect()
     }).collect();
@@ -396,17 +393,16 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
                     y: p.y + args.y_off,
                 })
                 .collect();
-            let s = stroke(
-                noise,
+            g.add(stroke(noise,
                 &pts,
                 StrokeArgs {
-                    width: args.width,
+                        width: args.shading,
                     // col: color_a(100, 100, 100, 0.1), //debug
-                    col: "cyan".to_string(),
-                    ..StrokeArgs::default("tex-str".to_string())
+                        col: "cyan".to_string(),
+                        ..StrokeArgs::default(format!("tex-sha {}", j))
                 },
-            );
-            g.add(s);
+            ));
+            
         }
     }
 
@@ -423,7 +419,7 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
         let args = StrokeArgs {
                 width: args.width,
                 col: col(noise, j as f64 / t_len as f64),
-                ..StrokeArgs::default("tex-str2".to_string())
+                ..StrokeArgs::default(format!("tex-tx {}", j))
         };
         g.add(stroke(noise, &pts, args));
     }

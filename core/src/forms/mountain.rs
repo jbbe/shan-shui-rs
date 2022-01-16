@@ -27,7 +27,6 @@ impl MountainArgs {
     }
 }
 
-// const ONE_TWO_ARR: [usize; 2] = ;
 /** Generates several layers.
  * Each layer is an arc inside of all previous layers
  * each arc is adjusted by noise.
@@ -197,20 +196,19 @@ pub fn mountain(
     // the rest of the vectors are the inner textures
     let num_layers = 10;
     let num_pts = 50;
-    let mut ht_off = 0.;
 
-    let layers = (0..num_layers)
-        .map(|layer_idx| {
+    let mut ht_off = 0.;
+    let layers = (0..num_layers).map(|layer_idx| {
             ht_off += (noise.rand() * y_off) / 100.;
             // Expansion will shrink from 1 towards 0 so that the line of
             // each layer is closer to mnt center
             let expansion = 1. - ((layer_idx as f64) / (num_layers as f64));
-            println!("Layer {}", layer_idx);
+            // println!("Layer {}", layer_idx);
             (0..num_pts)
                 .map(|pt_idx| {
                     let tilt = (pt_idx as f64 / num_pts as f64 - 0.5) * PI;
                     let y = tilt.cos() * noise.noise(tilt + 10., layer_idx as f64 * 0.15, seed);
-                    println!("x (tilt) {} y {} expansin {}", tilt, y, expansion);
+                    // println!("x (tilt) {} y {} expansin {}", tilt, y, expansion);
                     Point {
                         x: (tilt / PI) * width * expansion,
                         y: (-y) * height * expansion * ht_off,
@@ -253,10 +251,11 @@ pub fn mountain(
 
     // White background
     let mut white_bg_pts = layers[0].clone();
-    white_bg_pts.push(Point {
-        x: 0.,
-        y: num_layers as f64 * 4.,
-    });
+    // this point we push at the end to enclose the area of 
+    // the mountain where x being 0 will return us to the origin
+    // and y being the numer of layers of the mountian multiplied
+    // by 4 for some reason? how does this make sense?
+    white_bg_pts.push(Point { x: 0., y: num_layers as f64 * 4. });
     // println!("poly pts{:?}", poly_pts );
     group.add(poly(
         &white_bg_pts,
@@ -271,16 +270,12 @@ pub fn mountain(
     ));
 
     // Outline
-    let outline_pts: Vec<Point> = layers[0]
-        .iter()
-        .map(|p| Point {
-            x: p.x + x_off,
-            y: p.y + y_off,
-        })
-        .collect();
+    // let outline_pts: Vec<Point> = 
     group.add(stroke(
         noise,
-        &outline_pts,
+        &(layers[0].iter()
+            .map(|p| Point { x: p.x + x_off, y: p.y + y_off })
+            .collect()),
         StrokeArgs {
             // col: color_a(100, 100, 100, 0.3),
             col: "aqua".to_string(),
@@ -294,8 +289,7 @@ pub fn mountain(
     // group.add(foot(noise, &layers, x_off, y_off));
 
     // texture
-    let sha = noise.rand_choice_arrf(&[0., 0., 0., 0., 5.]);
-    // layers.reverse();
+    let shading = noise.rand_choice_arrf(&[0., 0., 0., 0., 5.]);
     group.add(texture(
         noise,
         &layers,
@@ -303,13 +297,12 @@ pub fn mountain(
             x_off,
             y_off,
             density: args.tex,
-            shading: sha,
+            shading,
             // col: args.col,
             col: |_n, _y| "green".to_string(),
             ..TextureArgs::default()
         },
     ));
-    // layers.reverse();
 
     // Top
     group.add(vegetate(
