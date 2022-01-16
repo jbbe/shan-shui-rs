@@ -1,4 +1,3 @@
-use svg::node::element::{Group, Polyline};
 use std::f64::consts::PI;
 use super::super::Noise;
 use super::super::*;
@@ -9,8 +8,8 @@ pub struct Man {}
 // #[allow(dead_code)]
 pub struct ManArgs {
     pub sca: f64,
-    pub hat: fn(Point, Point, bool) -> Polyline,
-    pub ite: fn(&mut Noise, Point, Point) -> Group,
+    pub hat: fn(Point, Point, bool) -> String,
+    pub ite: fn(&mut Noise, Point, Point) -> String,
     pub fli: bool,
     pub angle: [f64; 9],
     pub len: [f64; 9],
@@ -30,7 +29,7 @@ impl ManArgs {
                 -PI_4 * 4. * n.rand(), // (-PI * 3.) / 4. - (PI / 4.) * n.rand(),
                 -PI_4,
             ],
-            ite: |_n, _p0, _p1| Group::new(),
+            ite: |_n, _p0, _p1| "".to_string(),
             hat: |p0, p1, f| Man::hat02(p0, p1, f),
             fli: true,
             sca: 0.5,
@@ -49,9 +48,9 @@ impl StickArgs {
 }
 
 impl Man {
-    pub fn man(_x_off: f64, _y_off: f64, _args: ManArgs) -> Group {
-        let g = Group::new();
-        g
+    pub fn man(_x_off: f64, _y_off: f64, _args: ManArgs) -> String {
+        let mut g = Group::new();
+        g.to_string()
     }
 
     fn tran_poly(p0: Point, p1: Point, pt_list: &Vec<Point>) -> Vec<Point> {
@@ -72,7 +71,7 @@ impl Man {
             .collect()
     }
 
-    pub fn hat02(p0: Point, p1: Point, fli: bool) -> Polyline {
+    pub fn hat02(p0: Point, p1: Point, fli: bool) -> String {
         // let seed = _rand();
 
         let f = if fli { Man::flipper } else { |x| x };
@@ -100,7 +99,7 @@ impl Man {
         )
     }
 
-    pub fn stick01(noise: &mut Noise, _p0: Point, _p2: Point, _args: StickArgs) -> Group {
+    pub fn stick01(noise: &mut Noise, _p0: Point, _p2: Point, _args: StickArgs) -> String {
         let seed = noise.rand();
         // let f = if args.fli { Man::flipper } else { |x: Vec<Point>| -> Vec<Point> {x} };
 
@@ -115,7 +114,7 @@ impl Man {
                 y: i as f64 * 0.3,
             });
         }
-        Group::new()
+        Group::new().to_string()
     }
 
     fn flipper(p_list: Vec<Point>) -> Vec<Point> {

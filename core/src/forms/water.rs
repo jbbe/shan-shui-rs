@@ -15,7 +15,7 @@ impl WaterArgs {
     }
 }
 
-pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Group {
+pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> String {
     let mut g = Group::new();
     let mut pt_list = Vec::new();
     let mut yk = 0.;
@@ -45,8 +45,7 @@ pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Grou
                 y: p.y + y_off,
             })
             .collect();
-        g = g.add(
-            stroke(
+        g.add(stroke(
                 noise,
                 &pts,
                 StrokeArgs {
@@ -56,8 +55,7 @@ pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Grou
                     ..StrokeArgs::default("wawa".to_string())
                 },
             )
-            .unwrap(),
         );
     }
-    g
+    g.to_string()
 }

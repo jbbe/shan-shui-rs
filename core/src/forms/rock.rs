@@ -1,6 +1,5 @@
 use super::super::*;
 use core::f64::consts::PI;
-// k{Noise, Point,};
 
 pub struct RockArgs {
     pub height: f64,
@@ -19,7 +18,7 @@ impl RockArgs {
         }
     }
 }
-pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs) -> Group {
+pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs) -> String {
     let mut g = Group::new();
 
     let reso = [10, 50];
@@ -61,7 +60,7 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
 
     //white bg
     pt_list[0].push(Point { x: 0., y: 0. });
-    g = g.add(poly(&pt_list[0], PolyArgs { 
+    g.add(poly(&pt_list[0], PolyArgs { 
         x_off, 
         y_off, 
         fil: white(),
@@ -76,18 +75,14 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
         .iter()
         .map(|p| { Point { x: p.x + x_off, y: p.y + y_off } })
         .collect();
-    match stroke(noise, &outline_pts, StrokeArgs { 
+    g.add(stroke(noise, &outline_pts, StrokeArgs { 
         col: color_a(100, 100, 100, 0.3),
         noi: 1.,
         width: 3.,
         ..StrokeArgs::default("rockouln".to_string())
-    } ) {
-        Some(s) => {
-            g = g.add(s);
-        }
-        None => {}
-    }
-    g = g.add(texture(noise, &pt_list, TextureArgs {
+    } ));
+    
+    g.add(texture(noise, &pt_list, TextureArgs {
         x_off,
         y_off,
         density: args.tex,
@@ -103,5 +98,5 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
         ..TextureArgs::default()
     } )); // todo correct hese
 
-    g
+    g.to_string()
 }

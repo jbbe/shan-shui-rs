@@ -46,7 +46,7 @@ impl TreeArgs {
     }
 
 }
-pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
+pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
     let reso = 10;
     let mut ns_list: Vec<Point> = Vec::new();
     for i in 0..reso {
@@ -72,7 +72,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
                 let r4 = noise.rand();
                 let r5 = noise.rand();
                 let r6 = noise.rand();
-                g = g.add(blob(
+                g.add(blob(
                     noise,
                     nx + (r1 - 0.5) * args.width * 1.2 * (reso - i) as f64,
                     ny + (r2 - 0.5) * args.width,
@@ -83,7 +83,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
                         col: color_a(100, 100, 100, r6 * 0.2 + 0.5),
                         ..BlobArgs::default()
                     },
-                ))
+                ));
             }
         }
         line1.push(Point {
@@ -95,8 +95,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
             y: ny,
         });
     }
-    g = g
-        .add(poly(
+    g.add(poly(
             &line1,
             PolyArgs {
                 fil: "none".to_string(),
@@ -109,8 +108,8 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
             // "none".to_string(),
             // args.col.clone(),
             // 1.5,
-        ))
-        .add(poly(
+        ));
+    g.add(poly(
             &line2,
             PolyArgs {
                 fil: "none".to_string(),
@@ -119,10 +118,10 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
                 ..PolyArgs::default(Some("tree01 p2".to_string()))
             },
         ));
-    g
+    g.to_string()
 }
 
-pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
+pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
     let clu = args.clu as u8;
     let mut g = Group::new();
     for _ in 0..clu {
@@ -130,7 +129,7 @@ pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
         let r2 = noise.rand();
         let rg1 = noise.rand_gauss();
         let rg2 = noise.rand_gauss();
-        g = g.add(blob(
+        g.add(blob(
             noise,
             x + rg1 * args.clu * 4.,
             y + rg2 * args.clu * 4.,
@@ -145,12 +144,12 @@ pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
             },
         ));
     }
-    g
+    g.to_string()
 }
 
 
 
-pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
+pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
     let bc = noise.rand() * 0.1;
     let bp = 1;
     let ben = | x: f64| -> f64 {
@@ -187,7 +186,7 @@ pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
                 let width = noise.rand() * 6. -  3.;
                 let angle = (noise.rand() - 0.5) * PI / 6.;
                 let r2 = noise.rand();
-                g = g.add(blob(
+                g.add(blob(
                     noise,
                     nx + ox * r_choice,
                     ny + r1,
@@ -198,9 +197,7 @@ pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
                         col: color_a(leafcol[1], leafcol[1], leafcol[2], r2 * 0.2 ), // som
                         ..BlobArgs::default()
                     }
-
-                ))
-                
+                ));
             }
         }
         line1.push(Point {
@@ -214,12 +211,12 @@ pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> Group {
     }
     line2.reverse();
     line1.append(&mut line2);
-    g = g.add(poly(&line1, PolyArgs {
+    g.add(poly(&line1, PolyArgs {
         fil: white(),
         stroke: args.col,
         width: 1.5,
         ..PolyArgs::default(Some("tree03".to_string()))
     }));
-    g
+    g.to_string()
 }
 

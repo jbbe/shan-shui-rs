@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 use super::noise::Noise;
 use super::point::*;
-use svg::node::element::{Group, Polyline, Rectangle};
 use core::f64::consts::PI;
 
 pub fn color(r: u8, b: u8, g: u8) -> String {
@@ -22,19 +21,46 @@ pub fn green() -> String {
 
 pub fn white() -> String {
     "white".to_string()
-    // color(255, 255, 255)
 }
 
 pub fn black_a0() -> String {
     "rgba(0,0,0,0)".to_string()
-    // color(255, 255, 255)
 }
+
 pub fn none_str() -> String {
     "none".to_string()
 }
 
 pub fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
     format!("rgb({},{},{},{})", r, g, b, a)
+}
+
+pub struct Group {
+    contents: Vec<String>,
+}
+
+impl Group {
+    pub fn new() -> Self {
+        Self {
+            contents: vec![]
+        }
+    }
+
+    pub fn add(&mut self, s: String) {
+        self.contents.push(s)
+    }
+
+    pub fn to_string(&mut self) -> String {
+        if self.contents.len() == 0 {
+            "".to_string()
+        } else {
+            vec!["<g>".to_string(), 
+                self.contents.join(""),
+                "</g>".to_string()
+            ].join("")
+        }
+    }
+
 }
 
 pub struct PolyArgs {
@@ -59,33 +85,22 @@ impl PolyArgs {
     }
 }
 
-pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> Polyline {
-    let p_count = p_list.len();
-    let mut p_data = Vec::new();
-    p_data.reserve(p_count);
-    // let points = p_list.map
-    // let p_data_vec = Vec::new
-    for i in 0..p_count {
-        let x = p_list[i].x + args.x_off;
-        let y = p_list[i].y + args.y_off;
-        p_data.push(format!("{:.2}, {:.2}", x, y));
-        // if i == 0 {
-        //     data = data.move_to((x, y));
-        // } else {
-        //     data = data.line_by((x, y));
-        // }
-    }
+pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> String {
+    let p_data: Vec<String> = p_list.iter().map(|p| {
+        let x = p.x + args.x_off;
+        let y = p.y + args.y_off;
+        format!("{:.2}, {:.2}", x, y)
+    }).collect();
     let n = match args.name {
         Some(s) => s,
         None => "n".to_string(),
     };
-    let fmtd_pts = p_data.join(" ");
-    Polyline::new()
-        .set("name", n)
-        .set("fill", args.fil)
-        .set("stroke", args.stroke)
-        .set("stroke-width", args.width)
-        .set("points", fmtd_pts)
+    format!("<polyline name='{}' points='{}' style='fill:{};stroke:{};stroke-width:{}' />",
+        n,
+        p_data.join(" "),
+        args.fil,
+        args.stroke,
+        args.width)
 }
 
 pub struct StrokeArgs {
@@ -132,9 +147,9 @@ fn stroke_zip(
     vtx_list
 }
 
-pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Option<Polyline> {
+pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> String {
     if pt_list.len() == 0 {
-        return None;
+        return "".to_string();
     }
     let pt_len = pt_list.len();
     let mut vtx_list0: Vec<Point> = Vec::with_capacity(pt_len);
@@ -157,10 +172,6 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
             pt_list[i].y - pt_list[i + 1].y,
             pt_list[i].x - pt_list[i + 1].x,
         );
-    //   var a = (a1 + a2) / 2;
-    //   if (a < a2) {
-    //     a += Math.PI;
-    //   }
         let a = if a2 > a1 {
                 (a1 + a2) / 2. + PI
             } else { 
@@ -180,7 +191,7 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
     let vtx_list = stroke_zip(&pt_list, &mut vtx_list0, &mut vtx_list1);
 
 
-    Some(poly(
+    poly(
         &vtx_list,
         PolyArgs {
             x_off: args.x_off,
@@ -190,7 +201,7 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Opti
             width: args.out,
             name: Some(args.name),
         },
-    ))
+    )
 }
 
 pub struct BlobArgs {
@@ -221,7 +232,7 @@ impl BlobArgs {
     }
 }
 
-pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> Polyline {
+pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> String {
     let reso = 20.;
     let mut la_list = Vec::new();
     let i_lim = reso as usize + 1;
@@ -331,7 +342,7 @@ impl TextureArgs {
     }
 }
 
-pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -> Group {
+pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -> String {
     let reso = [layers.len(), layers[0].len()];
     let reso_f = [layers.len() as f64, layers[0].len() as f64];
     let col = args.col;
@@ -394,9 +405,7 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
                     ..StrokeArgs::default("tex-str".to_string())
                 },
             );
-            if !s.is_none() {
-                g = g.add(s.unwrap());
-            }
+            g.add(s);
         }
     }
 
@@ -420,23 +429,20 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
             &pts,
             args
         );
-        match s {
-            Some(s) =>  { g = g.add(s) }
-            None => {}
-        }
+        g.add(s);
     }
-    g
+    g.to_string()
 }
 
-pub fn rect(x: f64, y: f64, w: f64, h: f64, r: u8, g: u8, b: u8) -> Rectangle {
-    let fill = color(r, g, b);
-    Rectangle::new()
-        .set("fill", fill)
-        .set("x", x)
-        .set("y", y)
-        .set("width", w)
-        .set("height", h)
-}
+// pub fn rect(x: f64, y: f64, w: f64, h: f64, r: u8, g: u8, b: u8) -> String {
+//     let fill = color(r, g, b);
+//     Rectangle::new()
+//         .set("fill", fill)
+//         .set("x", x)
+//         .set("y", y)
+//         .set("width", w)
+//         .set("height", h)
+// }
 
 pub fn gr_zip(a: &VecDeque<Point>, b: &VecDeque<Point>) -> Vec<Point> {
     //   grlist1.reverse().concat(grlist2.concat([grlist1[0]]));

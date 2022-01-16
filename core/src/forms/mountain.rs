@@ -1,7 +1,6 @@
 use super::super::*;
 // {Noise, Point, poly, PolyArgs, texture, TextureArgs, stroke, };
 use super::*;
-use svg::node::element::{Group};
 use std::collections::{VecDeque};
 use core::f64::consts::PI;
 
@@ -39,8 +38,8 @@ const ONE_TWO_ARR: [usize; 2] = [1, 2];
  * Each form has its own uniqre set of conditions that determine
  * whether it appear
  */
-pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: MountainArgs) -> Group {
-    fn foot(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, x_off: f64, y_off: f64) -> Group {
+pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: MountainArgs) -> String {
+    fn foot(noise: &mut Noise, pt_list: &Vec<Vec<Point>>, x_off: f64, y_off: f64) -> String {
         let mut ft_list: Vec<Vec<Point>> = Vec::new();
         let span = 10;
         let mut ni = 0;
@@ -94,7 +93,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         let mut g = Group::new();
         let f_len = ft_list.len();
         for i in 0..f_len {
-            g = g.add(poly(
+            g.add(poly(
                 &ft_list[i],
                 PolyArgs {
                     x_off,
@@ -117,8 +116,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                 })
                 .collect::<Vec<_>>();
             let r1 = noise.rand();
-            g = g.add(
-                stroke(
+            g.add(stroke(
                     noise,
                     &stroke_pts,
                     StrokeArgs {
@@ -128,10 +126,9 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                         ..StrokeArgs::default("foot-str".to_string())
                     },
                 )
-                .unwrap(),
             );
         }
-        g
+        g.to_string()
     }
 
     fn vegetate(
@@ -141,7 +138,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         y_off: f64,
         seed: f64,
         h: f64,
-        tree_func: fn(noise: &mut Noise, x: f64, y: f64, x_off: f64, y_off: f64, h: f64) -> Group,
+        tree_func: fn(noise: &mut Noise, x: f64, y: f64, x_off: f64, y_off: f64, h: f64) -> String,
         growth_rule: fn(
             noise: &mut Noise,
             pts: &Vec<Vec<Point>>,
@@ -151,7 +148,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
             h: f64,
         ) -> bool,
         proof_rule: fn(pts: &Vec<Point>, y: f64) -> bool,
-    ) -> Group {
+    ) -> String {
         let mut veg_list: Vec<Point> = Vec::new();
         let mut g = Group::new();
         // might be error in original impl here he uses len straightI
@@ -172,7 +169,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
             let veg_len = veg_list.len() - 1;
             for i in 0..veg_len {
                 if proof_rule(&veg_list, i as f64) {
-                    g = g.add(tree_func(
+                    g.add(tree_func(
                         noise,
                         veg_list[i].x,
                         veg_list[i].y,
@@ -183,8 +180,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                 }
             }
         }
-        // */
-        g
+        g.to_string()
     }
 
     let height = args.height;
@@ -218,7 +214,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     }
     
     // Rim
-    group = group.add(vegetate(
+    group.add(vegetate(
         noise,
         &layers,
         x_off,
@@ -265,7 +261,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
 
         }
     );
-    group = group.add(white_bg);
+    group.add(white_bg);
 
     // Outline
     let outline_pts: Vec<Point> = layers[0]
@@ -276,7 +272,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
         })
         .collect();
     if outline_pts.len() > 1 {
-        group = group.add(
+        group.add(
             stroke(
                 noise,
                 &outline_pts,
@@ -288,20 +284,19 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                     ..StrokeArgs::default("outln-str".to_string())
                 },
             )
-            .unwrap(),
         );
     } else {
         println!("Stroke pt_list len < 1 {:?} ", outline_pts,);
     }
 
     // foot
-    group = group.add(foot(noise, &layers, x_off, y_off));
+    group.add(foot(noise, &layers, x_off, y_off));
 
     // texture
     let arr = [0., 0., 0., 0., 5.];
     let sha = noise.rand_choice_arrf(&arr);
 
-    group = group.add(texture(
+    group.add(texture(
         noise,
         &layers,
         TextureArgs {
@@ -315,7 +310,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     ));
 
     // Top
-    group = group.add(vegetate(
+    group.add(vegetate(
         noise,
         &layers,
         x_off,
@@ -348,7 +343,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     ));
     if args.veg {
         // middle
-        group = group.add(vegetate(
+        group.add(vegetate(
             noise,
             &layers,
             x_off,
@@ -385,16 +380,16 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
                 j % 2 != 0 && ns * ns * ns * ns < 0.012 && f64::abs(pt_list[i][j].y / h) < 0.3
             },
             |_veg_list, _i| true,
-        ))
+        ));
         // Bottom
-        .add(vegetate(
+        group.add(vegetate(
             noise,
             &layers,
             x_off,
             y_off,
             seed,
             height,
-            |noise, x, y, x_off, y_off, h| -> Group {
+            |noise, x, y, x_off, y_off, h| -> String {
                 let _ht = ((h + y) / h) * 120.;
                 let ht = _ht * 0.5 + noise.rand() * _ht * 0.5;
                 let args = TreeArgs {
@@ -421,7 +416,7 @@ pub fn mountain(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Moun
     // transm
 
     // bott rock
-    group
+    group.to_string()
 }
 
 
@@ -447,7 +442,7 @@ impl FlatMountArgs {
     }
 }
 
-pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs) -> Group {
+pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs) -> String {
     let mut g = Group::new();
 
     let mut pt_list: Vec<Vec<Point>>  = Vec::new();
@@ -503,7 +498,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
     let end_p = Point { x: 0., y: reso_f[0] * 4.};
     let mut bg_pts = pt_list[0].clone();
     bg_pts.push(end_p);
-    g = g.add(poly(&bg_pts, PolyArgs {
+    g.add(poly(&bg_pts, PolyArgs {
         x_off, 
         y_off,
         fil: "white".to_string(),
@@ -516,16 +511,13 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
         .iter()
         .map(|p| { Point { x: p.x + x_off, y: p.y + y_off }})
         .collect();
-    let outline = stroke(noise, &outln_pts, StrokeArgs {
+    g.add(stroke(noise, &outln_pts, StrokeArgs {
             col: color_a(100, 100, 100, 0.3),
             noi: 1.,
             width: 3.,
         ..StrokeArgs::default("fltmnt outln-str".to_string())
-        });
-    if !outline.is_none() {
-        g= g.add(outline.unwrap());
-    }
-    g = g.add(texture(noise, &pt_list, TextureArgs {
+        }));
+    g.add(texture(noise, &pt_list, TextureArgs {
             x_off,
             y_off,
             density: args.tex,
@@ -552,7 +544,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
     }
 
     if gr_list_1.len() == 0 {
-        return g
+        return g.to_string()
     }
 
     let mut wb = [gr_list_1[0].x, gr_list_2[0].y];
@@ -591,7 +583,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
         .iter()
         .map(|p| { Point { x: p.x + x_off, y: p.y + y_off} })
         .collect();
-     g = g.add(poly(&gr_list, PolyArgs { 
+     g.add(poly(&gr_list, PolyArgs { 
          x_off,
          y_off, 
          fil: "white".to_string(),
@@ -599,25 +591,19 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
          width: 2.,
          name: Some("sflt mnt553".to_string())
         }));
-    let stro = stroke(noise, &str_pts, StrokeArgs {
+    g.add(stroke(noise, &str_pts, StrokeArgs {
             width: 3.,
             col: color_a(100, 100, 100, 0.2),
             ..StrokeArgs::default("grlst str".to_string())
-        } ) ;
-    match stro {
-        Some(s) => {
-            g = g.add(s);
-        },
-        None => {},
-    }
+        } )) ;
 
     if gr_list.len() > 0 {
         let bnd = bound(gr_list);
-        g = g.add(flat_dec(noise, x_off, y_off, bnd));
+        g.add(flat_dec(noise, x_off, y_off, bnd));
         // g - g.add()
     }
     // fn bound(p_list: Vec<Point>) -> 
-    g
+    g.to_string()
 }
 
 pub struct Bound {
@@ -650,7 +636,7 @@ pub fn bound(p_list: Vec<Point>) -> Bound {
 }
 
 
-pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> Group {
+pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> String {
     let mut g = Group::new();
 
     let tt = noise.rand_choice_arr(&[0, 0, 1, 3, 3, 4]);
@@ -664,7 +650,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> G
             sha: 2.,
             ..RockArgs::default()
         };
-        g = g.add(rock(noise, x_off, y_off, seed, args));
+        g.add(rock(noise, x_off, y_off, seed, args));
     }
     for _ in 0..(noise.rand_choice_arr(&[0, 0, 1, 2])) {
         let xr = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
@@ -706,7 +692,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> G
         let seed = noise.rand() * 100.;
         let width = 50. + noise.rand() * 20.;
         let height = 40. + noise.rand() * 20.;
-        g = g.add(rock(
+        g.add(rock(
                 noise,
                 x,
                 y,
@@ -737,7 +723,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> G
         let seed = noise.rand() * 100.;
         let width = 50. + noise.rand() * 20.;
         let height = 40. + noise.rand() * 20.;
-        g = g.add(rock(
+        g.add(rock(
                 noise,
                 x,
                 y,
@@ -765,7 +751,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> G
         let seed = noise.rand() * 100.;
         let width = 50. + noise.rand() * 20.;
         let height = 40. + noise.rand() * 20.;
-        g = g.add(rock(
+        g.add(rock(
                 noise,
                 x,
                 y,
@@ -800,7 +786,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> G
         // add tree02
         let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
         let y = y_off + noise.norm_rand(gr_bound.y_min, gr_bound.y_max);
-        g = g.add(tree02(noise, x, y, TreeArgs::default01())); // FIXME ( default args for tree2)
+        g.add(tree02(noise, x, y, TreeArgs::default01())); // FIXME ( default args for tree2)
 
         i += 1.;
     }
@@ -809,7 +795,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> G
     if ts == 1 && tt != 4 {
         // Add arch
     }
-    g
+    g.to_string()
 }
 pub struct DistMountArgs {
     pub(crate) height: f64,
@@ -825,7 +811,7 @@ impl DistMountArgs {
         }
     }
 }
-pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: DistMountArgs) -> Group {
+pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: DistMountArgs) -> String {
     let mut g = Group::new();
     let span = 10.;
 
@@ -898,7 +884,7 @@ pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Di
         // for j in 0..
         // let p2: Vec<Point> = p_v.iter().collect();
         // let v = &Vec::from(p_v.iter().collect());
-        g = g.add(poly(&v, PolyArgs { 
+        g.add(poly(&v, PolyArgs { 
             fil: get_col(noise, p.x, p.y),
             stroke: none_str(),
             width: 1. ,
@@ -909,6 +895,6 @@ pub fn dist_mount(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: Di
             // let m =
         // }
     }
-    g
+    g.to_string()
 }
 

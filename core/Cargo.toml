@@ -11,4 +11,3 @@ debug = true
 
 [dependencies]
 base64 = "0.13.0"
-svg = "0.10.0"

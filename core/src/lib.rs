@@ -1,7 +1,5 @@
 use core::f64::consts::PI;
 use std::collections::{HashMap, VecDeque};
-use svg::node::element::Group;
-use svg::Document;
 
 pub mod draw;
 pub mod forms;
@@ -155,20 +153,23 @@ impl State {
                     tag: p.tag,
                     x: p.x,
                     y: p.y,
-                    canv: State::gen_chunk(noise, p, i).to_string()
+                    canv: State::gen_chunk(noise, p, i)
                 });
             }
         }
     }
 
-    fn gen_chunk(noise: &mut Noise, p: &Plan, i: usize) -> Group {
+    fn gen_chunk(noise: &mut Noise, p: &Plan, i: usize) -> String {
         // println!("create svg for chunk {:?} {:?} {:?}", p.tag, p.x, p.y);
         if p.tag == Tag::Mount {
             let seed = (i * 2) as f64 * noise.rand();
             let args = MountainArgs::default(noise);
             let svg_node = mountain(noise, p.x, p.y, seed, args);
             let w = water(noise, p.x, p.y - 1000., WaterArgs::default());
-            Group::new().add(svg_node).add(w)
+            let mut g = Group::new();
+            g.add(svg_node);
+            g.add(w);
+            g.to_string()
         } else if p.tag == Tag::FlatMount {
             let seed = 2. * noise.rand();
             let width = 600. + (noise.rand() * 400.);
@@ -203,11 +204,8 @@ impl State {
             };
             boat01(noise, p.x, p.y, args)
         } else {
-            Group::new()
+            "".to_string()
         }
-        // else if p.tag == Tag::RedCircle {
-        // } else if p.tag == Tag::GreenCircle {
-        // }
     }
 
 
@@ -334,9 +332,9 @@ pub fn svg_string(seed: f64) -> String {
     p.update(0., 3000.)
 }
 
-pub fn write_svg(svg_file: &str, doc: &Document) {
-    svg::save(svg_file, doc).unwrap();
-}
+// pub fn write_svg(svg_file: &str, doc: &Document) {
+//     svg::save(svg_file, doc).unwrap();
+// }
 
 pub struct Painting {
     state: State,
@@ -398,22 +396,15 @@ impl Painting {
     } 
     pub fn draw_boat(&mut self) -> String {
         let resolution = 512.;
-        Document::new()
-            .set("viewbox", (0., 0., resolution, resolution))
-            .set("style", "mix-blend-mode:multiply")
-            .add(boat01(&mut self.noise, 256., 256., BoatArgs::default()))
-            .to_string()
+        Painting::svg_template(resolution, resolution, 0., 
+            boat01(&mut self.noise, 256., 256., BoatArgs::default()))
     }
 
     pub fn draw_mount(&mut self) -> String {
         let resolution = 512.;
         let seed = (2.) * self.noise.rand();
         let args = MountainArgs::default(&mut self.noise);
-        Document::new()
-            .set("viewbox", (0., 0., resolution, resolution))
-            .set("style", "mix-blend-mode:multiply")
-            .add(mountain(&mut self.noise, 10., 300., seed, args))
-            .to_string()
+        Painting::svg_template(resolution, resolution, 0., mountain(&mut self.noise, 10., 300., seed, args))
     }
 }
 fn is_local_max(

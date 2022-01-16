@@ -1,6 +1,4 @@
-use super::super::Noise;
-use super::*;
-use svg::node::element::{Group};
+use super::super::*;
 
 pub struct BoatArgs {
     pub len: f64,
@@ -18,10 +16,10 @@ impl BoatArgs {
     }
 }
 
-pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> Group {
-    let mut g = Group::new();
+pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> String {
+    let mut g = draw::Group::new();
     let dir = if args.fli { -1. } else { 1. };
-    g = g.add(Man::man(
+    g.add(Man::man(
         x_off + 20. * (args.scale) * dir,
         y_off,
         ManArgs {
@@ -35,5 +33,5 @@ pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> Grou
     ));
     // g = g.add()
 
-    g
+    g.to_string()
 }
