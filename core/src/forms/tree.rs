@@ -35,7 +35,7 @@ impl TreeArgs {
         }
     }
 
-    pub fn default03(noise: &mut Noise) -> TreeArgs {
+    pub fn default03() -> TreeArgs {
         TreeArgs {
             height: 50.,
             width: 5.,

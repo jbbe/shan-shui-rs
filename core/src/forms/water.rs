@@ -16,19 +16,18 @@ impl WaterArgs {
 }
 
 pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> String {
-    let mut g = Group::new();
-    let mut pt_list = Vec::new();
+    let mut layers = Vec::new();
     let mut yk = 0.;
     let len_4 = args.len / 4.;
     for _ in 0..(args.clu) {
-        pt_list.push(Vec::new());
+        layers.push(Vec::new());
         let xk = (noise.rand() - 0.5) * ((args.len) / 8.);
         yk += noise.rand() * 5.;
         let lk = len_4 + noise.rand() * len_4;
         let mut j = -lk;
         while j < lk {
-            let idx = pt_list.len() - 1;
-            pt_list[idx].push(Point {
+            let idx = layers.len() - 1;
+            layers[idx].push(Point {
                 x: j + xk,
                 y: f64::sin(j * 0.2) * args.height * noise.noise(j * 0.1, 0., 0.) - 20. + yk,
             });
@@ -37,8 +36,9 @@ pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Stri
     }
 
     // println!("Drawing {} points of water",pt_list.len()); always 10
-    for j in 1..(pt_list.len()) {
-        let pts = pt_list[j]
+    let mut g = Group::new();
+    for j in 1..(layers.len()) {
+        let pts = layers[j]
             .iter()
             .map(|p| Point {
                 x: p.x + x_off,

@@ -57,10 +57,10 @@ impl MountainMap {
     pub fn new() -> Self {
         Self {
             data: HashMap::new(),
-            step: 5.
+            step: 5.,
         }
     }
-    
+
     fn init_plan_mtx_range(&mut self, x_min: f64, x_max: f64) {
         let mut i = x_min;
         while i < x_max {
@@ -73,7 +73,7 @@ impl MountainMap {
 
     fn incr_range(&mut self, x_min: f64, x_max: f64) {
         let lower_lim = f64::floor(x_min / self.step) as i32;
-        let upper_lim = f64::floor(x_max/ self.step) as i32;
+        let upper_lim = f64::floor(x_max / self.step) as i32;
         for k in lower_lim..upper_lim {
             // is this determining the crest of the mountains?
             *(self.data.entry(k).or_insert(0)) += 1;
@@ -129,7 +129,7 @@ impl State {
             }
         }
     }
-    
+
     pub fn gen_chunks(&mut self, noise: &mut Noise, x_min: f64, x_max: f64) {
         // let mut g = Group::new();
         while x_max > self.x_max - self.chunk_width || x_min < self.x_min + self.chunk_width {
@@ -153,7 +153,7 @@ impl State {
                     tag: p.tag,
                     x: p.x,
                     y: p.y,
-                    canv: State::gen_chunk(noise, p, i)
+                    canv: State::gen_chunk(noise, p, i),
                 });
             }
         }
@@ -164,56 +164,56 @@ impl State {
         if p.tag == Tag::Mount {
             let seed = (i * 2) as f64 * noise.rand();
             let args = MountainArgs::default(noise);
-            let svg_node = mountain(noise, p.x, p.y, seed, args);
-            let w = water(noise, p.x, p.y - 1000., WaterArgs::default());
             let mut g = Group::new();
-            g.add(svg_node);
-            g.add(w);
+            g.add(mountain(noise, p.x, p.y, seed, args));
+            g.add(water(noise, p.x, p.y - 1000., WaterArgs::default()));
             g.to_string()
-        } else if p.tag == Tag::FlatMount {
-            let seed = 2. * noise.rand();
-            let width = 600. + (noise.rand() * 400.);
-            let cho = 0.5 + (noise.rand() * 0.2);
-            let args = FlatMountArgs {
-                width,
-                height: 100.,
-                cho,
-                seed,
-                ..FlatMountArgs::default(noise)
-            };
-            flat_mount(noise, p.x, p.y, args)
-        } else if p.tag == Tag::DistMount {
-            let seed = noise.rand();
-            let len = noise.rand_choice_arrf(&[500., 100., 1500.]);
-            dist_mount(
-                noise,
-                p.x,
-                p.y,
-                seed,
-                DistMountArgs {
-                    height: 150.,
-                    len,
-                    ..DistMountArgs::default()
-                },
-            )
-        } else if p.tag == Tag::Boat {
-            let args = BoatArgs {
-                scale: p.y / 800.,
-                fli: noise.rand_bool(),
-                ..BoatArgs::default()
-            };
-            boat01(noise, p.x, p.y, args)
+        // } else if p.tag == Tag::FlatMount {
+        //     let seed = 2. * noise.rand();
+        //     let width = 600. + (noise.rand() * 400.);
+        //     let cho = 0.5 + (noise.rand() * 0.2);
+        //     let args = FlatMountArgs {
+        //         width,
+        //         height: 100.,
+        //         cho,
+        //         seed,
+        //         ..FlatMountArgs::default(noise)
+        //     };
+        //     flat_mount(noise, p.x, p.y, args)
+        // } else if p.tag == Tag::DistMount {
+        //     let seed = noise.rand();
+        //     let len = noise.rand_choice_arrf(&[500., 100., 1500.]);
+        //     dist_mount(
+        //         noise,
+        //         p.x,
+        //         p.y,
+        //         seed,
+        //         DistMountArgs {
+        //             height: 150.,
+        //             len,
+        //             ..DistMountArgs::default()
+        //         },
+        //     )
+        // } else if p.tag == Tag::Boat {
+        //     let args = BoatArgs {
+        //         scale: p.y / 800.,
+        //         fli: noise.rand_bool(),
+        //         ..BoatArgs::default()
+        //     };
+        //     boat01(noise, p.x, p.y, args)
         } else {
             "".to_string()
         }
     }
 
-
     /*
      * Mount planner
      */
     fn mount_planner(&mut self, noise: &mut Noise, x_min: f64, x_max: f64) -> Vec<Plan> {
-        println!("mount_planner top level x_min {:?} x_max {:?}", x_min, x_max);
+        println!(
+            "mount_planner top level x_min {:?} x_max {:?}",
+            x_min, x_max
+        );
         fn chadd_mind(registry: &mut Vec<Plan>, plan: Plan, mind: f64) -> bool {
             // let len = reg.len();
             for k in 0..(registry.len()) {
@@ -238,7 +238,6 @@ impl State {
         // REgistry ensures that no x is placed on exactly the same line
         let mut registry: Vec<Plan> = Vec::new();
 
-
         let rand_height = |noise: &mut Noise, x| noise.noise(x * 0.01, PI, 0.);
 
         let mnt_width = 200.;
@@ -256,19 +255,16 @@ impl State {
             // max y?
             let mut y = 0.;
             while y < rand_height(noise, x) * 480. {
-                if is_local_max(noise, x, y,  2.) {
+                if is_local_max(noise, x, y, 2.) {
                     let x_off = x + 2. * (noise.rand() - 0.5) * 500.;
                     let y_off = y + 300.;
-                    let r: Plan = Plan::new(
-                        Tag::Mount,
-                        x_off,
-                        y_off,
-                    );
+                    let r: Plan = Plan::new(Tag::Mount, x_off, y_off);
                     if chadd(&mut registry, r) {
                         // If we add the plan then we need to increment our map of the mountains
-                        self.plan_mtx.incr_range(x_off - mnt_width, x_off + mnt_width);
-                    } 
-                } 
+                        self.plan_mtx
+                            .incr_range(x_off - mnt_width, x_off + mnt_width);
+                    }
+                }
 
                 y += 30.;
             } // while y
@@ -276,11 +272,7 @@ impl State {
                 // distmount is only added when i < 4
                 println!("adding distmount");
                 let y = 280. - noise.rand() * 50.;
-                let r = Plan::new(
-                    Tag::DistMount,
-                    x,
-                    y
-                );
+                let r = Plan::new(Tag::DistMount, x, y);
                 chadd(&mut registry, r);
             } // if
 
@@ -289,8 +281,8 @@ impl State {
         println!("Xmin {:?} xmax {:?}", x_min, x_max); // 3794
 
         /*
-        * After moutnains are generated we add a flat mountain
-        * to ~10% of the unoccupied points
+         * After moutnains are generated we add a flat mountain
+         * to ~10% of the unoccupied points
          */
         x = x_min;
         while x < f64::floor(x_max) {
@@ -304,9 +296,9 @@ impl State {
                         x + (2. * (noise.rand() - 0.5) * 700.),
                         700. - y * 50.,
                     );
-                        chadd(&mut registry, r);
-                        y = y + 1.;
-                    } // while y
+                    chadd(&mut registry, r);
+                    y = y + 1.;
+                } // while y
             }
             x = x + self.plan_mtx.step;
         } // while x
@@ -327,19 +319,12 @@ impl State {
 }
 
 pub fn svg_string(seed: f64) -> String {
-    // gen_svg(seed, false).to_string()
-    let mut p = Painting::new(seed);
-    p.update(0., 3000.)
+    Painting::new(seed).update(0., 3000.)
 }
-
-// pub fn write_svg(svg_file: &str, doc: &Document) {
-//     svg::save(svg_file, doc).unwrap();
-// }
 
 pub struct Painting {
     state: State,
     noise: Noise,
-    // canv: String,
 }
 
 impl Painting {
@@ -355,10 +340,11 @@ impl Painting {
         let mut canv = vec![];
         // println!("Rendering {:?} chunks", self.state.chunks.len());
         for i in 0..(self.state.chunks.len()) {
-            if x_min - self.state.chunk_width < self.state.chunks[i].x &&
-                self.state.chunks[i].x < x_max + self.state.chunk_width {
-            println!("pushing chunk {}", i);
-            canv.push(self.state.chunks[i].canv.to_string());
+            if x_min - self.state.chunk_width < self.state.chunks[i].x
+                && self.state.chunks[i].x < x_max + self.state.chunk_width
+            {
+                println!("pushing chunk {}", i);
+                canv.push(self.state.chunks[i].canv.to_string());
             }
         }
         println!("Rendered {} chunks", canv.len());
@@ -370,53 +356,50 @@ impl Painting {
         self.chunk_render(x_min, x_max)
     }
 
-    // pub fn update_state() -> String {
-    //     self.update()
-    // }
-
-
     pub fn full_svg(&mut self, width: f64, height: f64) -> String {
-        // println!("Perlins {:?}", self.noise.perlins());
-        // let resolution = 512.;
         self.state.gen_chunks(&mut self.noise, 0., width);
         Self::svg_template(width, height, 0., self.chunk_render(0., width))
-        // Document::new()
-        //     .set("viewbox", (0., 0., resolution, resolution))
-        //     .set("style", "mix-blend-mode:multiply")
-        //     .add(self.state.gen_chunks(&mut self.noise, 0., width))
-        //     .to_string()
     }
 
-    pub fn svg_template(w: f64, h: f64, x: f64,  svg: String) -> String {
-        vec!["<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='",
-            &w.to_string()[..], "' height='", &h.to_string()[..], "' style='mix-blend-mode:multiply;' viewBox ='",
-            &x.to_string()[..],  &(x + w).to_string()[..], "'><g id='G' transform='translate(0,0)'>", 
-            &svg[..], "</g></svg>"
-            ].join("")
-    } 
+    pub fn svg_template(w: f64, h: f64, x: f64, svg: String) -> String {
+        vec![
+            "<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='",
+            &w.to_string()[..],
+            "' height='",
+            &h.to_string()[..],
+            "' style='mix-blend-mode:multiply;' viewBox ='",
+            &x.to_string()[..],
+            &(x + w).to_string()[..],
+            "'><g id='G' transform='translate(0,0)'>",
+            &svg[..],
+            "</g></svg>",
+        ]
+        .join("")
+    }
     pub fn draw_boat(&mut self) -> String {
         let resolution = 512.;
-        Painting::svg_template(resolution, resolution, 0., 
-            boat01(&mut self.noise, 256., 256., BoatArgs::default()))
+        Painting::svg_template(
+            resolution,
+            resolution,
+            0.,
+            boat01(&mut self.noise, 256., 256., BoatArgs::default()),
+        )
     }
 
     pub fn draw_mount(&mut self) -> String {
         let resolution = 512.;
         let seed = (2.) * self.noise.rand();
         let args = MountainArgs::default(&mut self.noise);
-        Painting::svg_template(resolution, resolution, 0., mountain(&mut self.noise, 10., 300., seed, args))
+        Painting::svg_template(
+            resolution,
+            resolution,
+            0.,
+            mountain(&mut self.noise, 10., 300., seed, args),
+        )
     }
 }
-fn is_local_max(
-    noise: &mut Noise,
-    x: f64,
-    y: f64,
-    // f: fn(&mut Noise, f64, f64) -> f64,
-    r: f64,
-) -> bool {
-    let f = |x: f64, _: f64| -> f64 {
-        f64::max(noise.noise(x * SAMP, 0., 0.) - 0.55, 0.) * 2.
-    };
+fn is_local_max(noise: &mut Noise, x: f64, y: f64, r: f64) -> bool {
+    let f = |x: f64, _: f64| -> f64 { f64::max(noise.noise(x * SAMP, 0., 0.) - 0.55, 0.) * 2. };
     let z0 = f(x, y);
     if z0 <= 0.3 {
         return false;

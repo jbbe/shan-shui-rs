@@ -345,10 +345,10 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
     let pt_cntf = pt_cnt as f64;
 
     let col = args.col;
-    let mut tex_layers: Vec<Vec<Point>> = Vec::with_capacity(args.density);
 
     let dis = args.dis;
-    for i in 0..args.density {
+    let tex_layers: Vec<Vec<Point>> = (0..args.density).map(|i| {
+
         let i_f = i as f64;
         let mid = (dis(noise) * pt_cntf) as i32 | 0;
         let h_len = f64::floor(noise.rand() * (pt_cntf * args.len)) as i32;
@@ -365,26 +365,20 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
 
         let layer_floor = f64::floor(layer) as usize;
         let layer_ceil = f64::ceil(layer) as usize;
-        tex_layers.push(Vec::with_capacity(u_end - u_start));
 
-        for j in u_start..u_end {
+        (u_start..u_end).map(|j| {
             let p = layer - f64::floor(layer);
 
             let x = layers[layer_floor][j].x * p + layers[layer_ceil][j].x * (1. - p);
-
             let y = layers[layer_floor][j].y * p + layers[layer_ceil][j].y * (1. - p);
 
             let noi_res = (args.noi)(layer + 1.);
             let ns0 =  noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
             let ns1 = noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
 
-            let t_last = tex_layers.len() - 1;
-            tex_layers[t_last].push(Point {
-                x: x + ns0,
-                y: y + ns1,
-            });
-        } // j
-    } // i
+            Point { x: x + ns0, y: y + ns1 }
+        }).collect()
+    }).collect();
 
     let t_len = tex_layers.len();
     let mut g = Group::new();
@@ -427,12 +421,7 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
                 col: col(noise, j as f64 / t_len as f64),
                 ..StrokeArgs::default("tex-str2".to_string())
         };
-        let s = stroke(
-            noise,
-            &pts,
-            args
-        );
-        g.add(s);
+        g.add(stroke(noise, &pts, args));
     }
     g.to_string()
 }
