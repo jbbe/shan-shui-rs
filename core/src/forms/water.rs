@@ -36,7 +36,7 @@ pub fn water(noise: &mut Noise, x_off: f64, y_off: f64, args: WaterArgs) -> Stri
     }
 
     // println!("Drawing {} points of water",pt_list.len()); always 10
-    let mut g = Group::new();
+    let mut g = Group::new("water".to_string());
     for j in 1..(layers.len()) {
         let pts = layers[j]
             .iter()

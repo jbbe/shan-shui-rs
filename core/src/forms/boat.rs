@@ -17,7 +17,7 @@ impl BoatArgs {
 }
 
 pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> String {
-    let mut g = draw::Group::new();
+    let mut g = draw::Group::new("boat01".to_string());
     let dir = if args.fli { -1. } else { 1. };
     g.add(Man::man(
         x_off + 20. * (args.scale) * dir,

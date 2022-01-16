@@ -97,7 +97,7 @@ pub fn mountain(
                 }
             }
         }
-        let mut g = Group::new();
+        let mut g = Group::new("foot".to_string());
         let colors_poly = ["pink", "red", "yellow"];
         let colors_stroke = ["blue", "aqua", "green"];
         let mut i = 0;
@@ -157,7 +157,7 @@ pub fn mountain(
         proof_rule: fn(pts: &Vec<Point>, y: f64) -> bool,
     ) -> String {
         let mut veg_list: Vec<Point> = Vec::new();
-        let mut g = Group::new();
+        let mut g = Group::new("veg".to_string());
         // might be error in original impl here he uses len straightI
         // /*
         for layer_idx in 0..(layers.len()) {
@@ -218,7 +218,7 @@ pub fn mountain(
                 }).collect()
         }).collect();
 
-    let mut group = Group::new();
+    let mut group = Group::new("mnt".to_string());
     // Rim
     group.add(vegetate(
         noise,
@@ -445,7 +445,7 @@ impl FlatMountArgs {
 }
 
 pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs) -> String {
-    let mut g = Group::new();
+    let mut g = Group::new("flatmnt".to_string());
 
     let mut pt_list: Vec<Vec<Point>> = Vec::new();
     let mut flat: Vec<Vec<Point>> = Vec::new();
@@ -672,7 +672,7 @@ pub fn bound(p_list: Vec<Point>) -> Bound {
 }
 
 pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> String {
-    let mut g = Group::new();
+    let mut g = Group::new("flat dec".to_string());
 
     let tt = noise.rand_choice_arr(&[0, 0, 1, 3, 3, 4]);
     for _ in 0..(f64::floor(noise.rand() * 5.) as usize) {
@@ -852,7 +852,7 @@ pub fn dist_mount(
     seed: f64,
     args: DistMountArgs,
 ) -> String {
-    let mut g = Group::new();
+    let mut g = Group::new("dstmnt".to_string());
     let span = 10.;
 
     let mut pt_list = Vec::new();

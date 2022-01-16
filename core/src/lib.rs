@@ -164,7 +164,7 @@ impl State {
         if p.tag == Tag::Mount {
             let seed = (i * 2) as f64 * noise.rand();
             let args = MountainArgs::default(noise);
-            let mut g = Group::new();
+            let mut g = Group::new("mount".to_string());
             g.add(mountain(noise, p.x, p.y, seed, args));
             g.add(water(noise, p.x, p.y - 1000., WaterArgs::default()));
             g.to_string()

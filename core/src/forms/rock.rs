@@ -19,7 +19,7 @@ impl RockArgs {
     }
 }
 pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs) -> String {
-    let mut g = Group::new();
+    let mut g = Group::new("rok".to_string());
 
     let reso = [10, 50];
     let resof = [10., 50.];

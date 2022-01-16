@@ -37,12 +37,14 @@ pub fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
 
 pub struct Group {
     contents: Vec<String>,
+    name: String,
 }
 
 impl Group {
-    pub fn new() -> Self {
+    pub fn new(n: String) -> Self {
         Self {
-            contents: vec![]
+            contents: vec![],
+            name: n,
         }
     }
 
@@ -54,7 +56,9 @@ impl Group {
         if self.contents.len() == 0 {
             "".to_string()
         } else {
-            vec!["<g>".to_string(), 
+            vec!["<g name='".to_string(),
+                self.name.clone(),
+                "'>".to_string(),
                 self.contents.join(""),
                 "</g>".to_string()
             ].join("")
@@ -381,7 +385,7 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
     }).collect();
 
     let t_len = tex_layers.len();
-    let mut g = Group::new();
+    let mut g = Group::new("texture".to_string());
     // shade
     if args.shading != 0. {
         // no shading on first layer

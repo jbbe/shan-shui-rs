@@ -49,7 +49,7 @@ impl StickArgs {
 
 impl Man {
     pub fn man(_x_off: f64, _y_off: f64, _args: ManArgs) -> String {
-        let mut g = Group::new();
+        let mut g = Group::new("man".to_string());
         g.to_string()
     }
 
@@ -114,7 +114,7 @@ impl Man {
                 y: i as f64 * 0.3,
             });
         }
-        Group::new().to_string()
+        Group::new("stick".to_string()).to_string()
     }
 
     fn flipper(p_list: Vec<Point>) -> Vec<Point> {

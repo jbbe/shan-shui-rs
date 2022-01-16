@@ -55,7 +55,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
             y: noise.noise(i as f64 * 0.5, 0.5, 0.),
         });
     }
-    let mut g = Group::new();
+    let mut g = Group::new("tree01".to_string());
     //    let leaf_col = [100, 100, 100, 0.5];
     let mut line1 = Vec::new();
     let mut line2 = Vec::new();
@@ -123,7 +123,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
 
 pub fn tree02(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
     let clu = args.clu as u8;
-    let mut g = Group::new();
+    let mut g = Group::new("tree02".to_string());
     for _ in 0..clu {
         let r1 = noise.rand();
         let r2 = noise.rand();
@@ -157,7 +157,7 @@ pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
         x * bc
     };
 
-    let mut g = Group::new();
+    let mut g = Group::new("tree03".to_string());
     let reso = 10;
     let resof = 10.;
     // let ns_list = [Point; 10; Point { x: 0, y: 0} ];
