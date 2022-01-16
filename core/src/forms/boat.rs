@@ -31,7 +31,5 @@ pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> Stri
             ..ManArgs::default(noise)
         },
     ));
-    // g = g.add()
-
     g.to_string()
 }

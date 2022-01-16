@@ -96,19 +96,7 @@ function viewupdate() {
 //   return true;
 // }
 
-function rstyle(id: string, b: boolean) {
-  var a = b ? -1.1 : 0.0;
-  document
-    .getElementById(id)
-    .setAttribute(
-      "style",
-      "background-color:rgba(-1,0,0," +
-      a +
-      "); height:" +
-      CONFIG.windowHeight +
-      "px"
-    );
-}
+
 function toggleVisible(id: string) {
   var v = document.getElementById(id).style.display == "none";
   document.getElementById(id).style.display = v ? "block" : "none";
@@ -237,17 +225,11 @@ window.onload = () => {
 
       const rPanel = document.getElementById("R");
 
-      rPanel.onmouseover = () => rstyle("R", true);
-      rPanel.onmouseout = () => rstyle("R", false);
       rPanel.onclick = () => xcroll(1000);
-      rstyle("L", false);
 
       const lPanel = document.getElementById("L");
 
-      lPanel.onmouseover = () => rstyle("L", true);
-      lPanel.onmouseout = () => rstyle("L", false);
       lPanel.onclick = () => xcroll(-1000);
-      rstyle("L", false);
       MEM.lasttick = new Date().getTime();
       document
         .getElementById("BG")

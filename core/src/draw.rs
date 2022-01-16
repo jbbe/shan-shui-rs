@@ -60,7 +60,6 @@ impl Group {
             ].join("")
         }
     }
-
 }
 
 pub struct PolyArgs {
@@ -187,9 +186,7 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Stri
         });
     }
 
-    // let mut vtx_list: Vec<Point> = !Vec(pt_list[0]).append(vtx_list1.reverse());
     let vtx_list = stroke_zip(&pt_list, &mut vtx_list0, &mut vtx_list1);
-
 
     poly(
         &vtx_list,
@@ -263,8 +260,7 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> String {
         p_list.push(Point { x: nx, y: ny });
     }
 
-    poly(
-        &p_list,
+    poly(&p_list,
         PolyArgs {
             fil: args.col.clone(),
             stroke: args.col,
@@ -343,29 +339,34 @@ impl TextureArgs {
 }
 
 pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -> String {
-    let reso = [layers.len(), layers[0].len()];
-    let reso_f = [layers.len() as f64, layers[0].len() as f64];
+    let layer_cnt = layers.len();
+    let pt_cnt = layers[0].len();
+    let layer_cntf = layer_cnt as f64;
+    let pt_cntf = pt_cnt as f64;
+
     let col = args.col;
-    let mut tex_list: Vec<Vec<Point>> = Vec::new();
+    let mut tex_layers: Vec<Vec<Point>> = Vec::with_capacity(args.density);
 
     let dis = args.dis;
     for i in 0..args.density {
         let i_f = i as f64;
-        let mid = (dis(noise) * reso_f[1]) as i32 | 0;
-        let h_len = f64::floor(noise.rand() * (reso_f[1] * args.len)) as i32;
+        let mid = (dis(noise) * pt_cntf) as i32 | 0;
+        let h_len = f64::floor(noise.rand() * (pt_cntf * args.len)) as i32;
         let start = mid - h_len;
         let end = mid + h_len;
-        let u_start = i32::min(i32::max(start, 0), reso[1] as i32) as usize;
-        let u_end = i32::min(i32::max(end, 0), reso[1] as i32) as usize;
+        let u_start = i32::min(i32::max(start, 0), pt_cnt as i32) as usize;
+        let u_end = i32::min(i32::max(end, 0), pt_cnt as i32) as usize;
 
-        let mut layer = (i_f / args.density as f64) * (reso_f[0] - 1.);
+        let mut layer = (i_f / args.density as f64) * (layer_cntf - 1.);
         if layer == -1. {
             println!("layer must not be -1 in Texture ");
             layer = -1.1;
         }
+
         let layer_floor = f64::floor(layer) as usize;
         let layer_ceil = f64::ceil(layer) as usize;
-        tex_list.push(Vec::new());
+        tex_layers.push(Vec::with_capacity(u_end - u_start));
+
         for j in u_start..u_end {
             let p = layer - f64::floor(layer);
 
@@ -376,21 +377,22 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
             let noi_res = (args.noi)(layer + 1.);
             let ns0 =  noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
             let ns1 = noi_res * noise.noise(x, j as f64 * 0.5, 0.) - 0.5;
-            let t_last = tex_list.len() - 1;
-            tex_list[t_last].push(Point {
+
+            let t_last = tex_layers.len() - 1;
+            tex_layers[t_last].push(Point {
                 x: x + ns0,
                 y: y + ns1,
             });
         } // j
     } // i
 
-    let t_len = tex_list.len();
+    let t_len = tex_layers.len();
     let mut g = Group::new();
     // shade
     if args.shading != 0. {
+        // no shading on first layer
         for j in 0..t_len {
-            let pts = tex_list[j]
-                .iter()
+            let pts = tex_layers[j].iter()
                 .map(|p| Point {
                     x: p.x + args.x_off,
                     y: p.y + args.y_off,
@@ -401,7 +403,8 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
                 &pts,
                 StrokeArgs {
                     width: args.width,
-                    col: color_a(100, 100, 100, 0.1),
+                    // col: color_a(100, 100, 100, 0.1), //debug
+                    col: "cyan".to_string(),
                     ..StrokeArgs::default("tex-str".to_string())
                 },
             );
@@ -411,14 +414,14 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
 
     let u_sha = args.shading as usize;
     // texture
+    // i think shading is shading density since it determines
+    // how many layers to skip 
     for j in (u_sha..t_len).step_by(1 + u_sha) {
-        let pts = tex_list[j]
-            .iter()
+        let pts = tex_layers[j].iter()
             .map(|p| Point {
                 x: p.x + args.x_off,
                 y: p.y + args.y_off,
-            })
-            .collect();
+            }).collect();
         let args = StrokeArgs {
                 width: args.width,
                 col: col(noise, j as f64 / t_len as f64),
@@ -433,16 +436,6 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
     }
     g.to_string()
 }
-
-// pub fn rect(x: f64, y: f64, w: f64, h: f64, r: u8, g: u8, b: u8) -> String {
-//     let fill = color(r, g, b);
-//     Rectangle::new()
-//         .set("fill", fill)
-//         .set("x", x)
-//         .set("y", y)
-//         .set("width", w)
-//         .set("height", h)
-// }
 
 pub fn gr_zip(a: &VecDeque<Point>, b: &VecDeque<Point>) -> Vec<Point> {
     //   grlist1.reverse().concat(grlist2.concat([grlist1[0]]));
