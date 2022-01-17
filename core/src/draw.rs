@@ -392,8 +392,8 @@ pub fn texture(noise: &mut Noise, layers: &Vec<Vec<Point>>, args: TextureArgs) -
                 &pts,
                 StrokeArgs {
                         width: args.shading,
-                    // col: color_a(100, 100, 100, 0.1), //debug
-                        col: "cyan".to_string(),
+                    col: color_a(100, 100, 100, 0.1), //debug
+                        // col: "cyan".to_string(),
                         ..StrokeArgs::default(format!("tex-sha {}", j))
                 },
             ));

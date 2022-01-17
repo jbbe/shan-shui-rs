@@ -98,9 +98,8 @@ pub fn mountain(
             }
         }
         let mut g = Group::new("foot".to_string());
-        let colors_poly = ["pink", "red", "yellow"];
-        let colors_stroke = ["chartreuse", "chocolate", "orange"];
-        let mut i = 0;
+        // let colors_poly = ["pink", "red", "yellow"];
+        // let colors_stroke = ["chartreuse", "chocolate", "orange"];
         for layer in ft_layers.iter() {
             // these polys are roughly triangles that cover partway up texture linex
             // and reach the base
@@ -108,7 +107,8 @@ pub fn mountain(
                 PolyArgs {
                     x_off,
                     y_off,
-                    fil: colors_poly[i % 3].to_string(),
+                    // fil: colors_poly[i % 3].to_string(),
+                    fil: white(),
                     stroke: "none".to_string(),
                     ..PolyArgs::default(Some("ft-poly".to_string()))
                 },
@@ -117,19 +117,19 @@ pub fn mountain(
             // Draw the bottom and lines on the foot of the mountain
             // these lines cover the base of the mountain and outline
             // the shading above.
+            let r1 = noise.rand();
             g.add(stroke(
                 noise,
                 &layer.iter()
                     .map(|p| Point { x: p.x + x_off, y: p.y + y_off })
                     .collect(),
                 StrokeArgs {
-                    // col: color_a(100, 100, 100, 0.1 +(r1 * 0.1)),
-                    col: colors_stroke[i % 3].to_string(),
+                    col: color_a(100, 100, 100, 0.1 +(r1 * 0.1)),
+                    // col: colors_stroke[i % 3].to_string(),
                     width: 1.,
                     ..StrokeArgs::default("ft-tr".to_string())
                 },
             ));
-            i += 1;
         }
         g.to_string()
     }
@@ -258,7 +258,7 @@ pub fn mountain(
         PolyArgs {
             x_off,
             y_off,
-            fil: "gray".to_string(),
+            fil: "white".to_string(),
             stroke: "none".to_string(),
             width: 0.,
             name: Some("wht bg".to_string()),
@@ -272,8 +272,8 @@ pub fn mountain(
             .map(|p| Point { x: p.x + x_off, y: p.y + y_off })
             .collect()),
         StrokeArgs {
-            // col: color_a(100, 100, 100, 0.3),
-            col: "aqua".to_string(),
+            col: color_a(100, 100, 100, 0.3),
+            // col: "aqua".to_string(),
             noi: 1.,
             width: 3.,
             ..StrokeArgs::default("outln-str".to_string())
@@ -293,7 +293,8 @@ pub fn mountain(
             density: args.tex_density,
             shading,
             // col: args.col,
-            col: |_n, _y| "green".to_string(),
+            col: |n, _x| { color_a(100, 100, 100, n.rand()* 0.3)},
+            // col: |_n, _y| "green".to_string(),
             ..TextureArgs::default()
         },
     ));
@@ -330,8 +331,8 @@ pub fn mountain(
         },
         |_veg_list, _i| true,
     ));
-    if false {
-        // if args.veg {
+    // if false {
+        if args.veg {
         // middle
         group.add(vegetate(
             noise,

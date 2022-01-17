@@ -169,39 +169,39 @@ impl State {
             g.add(mountain(noise, p.x, p.y, seed, args));
             g.add(water(noise, p.x, p.y - 1000., WaterArgs::default()));
             g.to_string()
-        // } else if p.tag == Tag::FlatMount {
-        //     let seed = 2. * noise.rand();
-        //     let width = 600. + (noise.rand() * 400.);
-        //     let cho = 0.5 + (noise.rand() * 0.2);
-        //     let args = FlatMountArgs {
-        //         width,
-        //         height: 100.,
-        //         cho,
-        //         seed,
-        //         ..FlatMountArgs::default(noise)
-        //     };
-        //     flat_mount(noise, p.x, p.y, args)
-        // } else if p.tag == Tag::DistMount {
-        //     let seed = noise.rand();
-        //     let len = noise.rand_choice_arrf(&[500., 100., 1500.]);
-        //     dist_mount(
-        //         noise,
-        //         p.x,
-        //         p.y,
-        //         seed,
-        //         DistMountArgs {
-        //             height: 150.,
-        //             len,
-        //             ..DistMountArgs::default()
-        //         },
-        //     )
-        // } else if p.tag == Tag::Boat {
-        //     let args = BoatArgs {
-        //         scale: p.y / 800.,
-        //         fli: noise.rand_bool(),
-        //         ..BoatArgs::default()
-        //     };
-        //     boat01(noise, p.x, p.y, args)
+        } else if p.tag == Tag::FlatMount {
+            let seed = 2. * noise.rand();
+            let width = 600. + (noise.rand() * 400.);
+            let cho = 0.5 + (noise.rand() * 0.2);
+            let args = FlatMountArgs {
+                width,
+                height: 100.,
+                cho,
+                seed,
+                ..FlatMountArgs::default(noise)
+            };
+            flat_mount(noise, p.x, p.y, args)
+        } else if p.tag == Tag::DistMount {
+            let seed = noise.rand();
+            let len = noise.rand_choice_arrf(&[500., 100., 1500.]);
+            dist_mount(
+                noise,
+                p.x,
+                p.y,
+                seed,
+                DistMountArgs {
+                    height: 150.,
+                    len,
+                    ..DistMountArgs::default()
+                },
+            )
+        } else if p.tag == Tag::Boat {
+            let args = BoatArgs {
+                scale: p.y / 800.,
+                fli: noise.rand_bool(),
+                ..BoatArgs::default()
+            };
+            boat01(noise, p.x, p.y, args)
         } else {
             "".to_string()
         }
