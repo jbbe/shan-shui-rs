@@ -173,7 +173,6 @@ impl Noise {
         for i in 0..ns_len {
             ns_list[i] = map_val(ns_list[i], bds[0], bds[1], 0., 1.);
         }
-        // ns_list
         ()
     }
 

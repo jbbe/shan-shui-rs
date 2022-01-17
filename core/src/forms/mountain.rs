@@ -44,7 +44,9 @@ pub fn mountain(
     seed: f64,
     args: MountainArgs,
 ) -> String {
-    #[allow(unused)]
+    /*
+    * Draw triangles at the base of the mountain.
+    */
     fn foot(noise: &mut Noise, layers: &Vec<Vec<Point>>, x_off: f64, y_off: f64) -> String {
         let mut ft_layers: Vec<Vec<Point>> = Vec::new();
         let span = 10;
@@ -53,79 +55,73 @@ pub fn mountain(
         for i in 0..loop_limit {
             if i == ni {
                 // ni increases at increments of 1 or 2 until it it is 2 less than the number of l
-                ni = usize::min(ni + noise.rand_choice_arr(&[1, 2]), layers.len() - 1);
-                let pt_count = usize::min(f64::floor(layers[i].len() as f64 / 8.) as usize, 10);
-                ft_layers.push(Vec::with_capacity(pt_count));
-                ft_layers.push(Vec::with_capacity(pt_count));
+                ni = (ni + noise.rand_choice_arr(&[1, 2])).min(layers.len() - 1);
+                let layer = &layers[i];
+                let n_layer = &layers[ni];
+                let pt_count = ((layers[i].len() as f64 / 8.).ceil() as usize).min(10);
+                let mut ft_layer1 = Vec::with_capacity(pt_count + span);
+                let mut ft_layer2 =Vec::with_capacity(pt_count + span);
                 for j in 0..pt_count {
-                    let layer1_idx = ft_layers.len() - 2;
-                    ft_layers[layer1_idx].push(Point {
-                        x: layers[i][j].x + noise.noise(j as f64 * 0.1, i as f64, 0.) * 10.,
-                        y: layers[i][j].y,
+                    ft_layer1.push(Point {
+                        x: layer[j].x + noise.noise(j as f64 * 0.1, i as f64, 0.) * 10.,
+                        y: layer[j].y,
                     });
-                    let layer2_idx = ft_layers.len() - 1;
-                    ft_layers[layer2_idx].push(Point {
-                        x: layers[i][layers[i].len() - 1 - j].x
+                    ft_layer2.push(Point {
+                        x: layer[layer.len() - 1 - j].x
                             - noise.noise(j as f64 * 0.1, i as f64, 0.) * 10.,
-                        y: layers[i][layers[i].len() - 1 - j].y,
+                        y: layer[layer.len() - 1 - j].y,
                     });
                 }
 
-                let layer_idx1 = ft_layers.len() - 2;
-                let layer_idx2 = ft_layers.len() - 1;
-                ft_layers[layer_idx1].reverse();
-                ft_layers[layer_idx2].reverse();
+                ft_layer1.reverse();
+                ft_layer2.reverse();
 
                 for j in 0..span {
                     let p = j as f64 / span as f64;
-                    let x1 = layers[i][0].x * (1. - p) * layers[ni][0].x * p;
-                    let mut y1 = layers[i][0].y * (1. - p) * layers[ni][0].y * p;
+                    // x1 y1 are the start of all pts in the corner of traingle?
+                    let x1 = layer[0].x * (1. - p) + n_layer[0].x * p;
+                    let mut y1 = layer[0].y * (1. - p) + n_layer[0].y * p;
 
-                    let pt_last = layers.len() - 1;
-                    let x2 = layers[i][pt_last].x * (1. - p) + layers[i][pt_last].x * p;
-                    let mut y2 = layers[i][pt_last].y * (1. - p) + layers[i][pt_last].y * p;
+                    let pt_last = layer.len() - 1;
+                    let x2 = layer[pt_last].x * (1. - p) + n_layer[pt_last].x * p;
+                    let mut y2 = layer[pt_last].y * (1. - p) + n_layer[pt_last].y * p;
 
-                    let vib = -1.7 * (p - 1.) * f64::powf(p, 0.2);
-
+                    let vib = -1.7 * (p - 1.) * p.powf(0.2);
                     y1 += vib * 5. + noise.noise(x_off * 0.05, i as f64, 0.) * 5.;
                     y2 += vib * 5. + noise.noise(x_off * 0.05, i as f64, 0.) * 5.;
 
-                    let idx1 = ft_layers.len() - 2;
-                    let idx2 = ft_layers.len() - 1;
-                    ft_layers[idx1].push(Point { x: x1, y: y1 });
-                    ft_layers[idx2].push(Point { x: x2, y: y2 });
+                    ft_layer1.push(Point { x: x1, y: y1 });
+                    ft_layer2.push(Point { x: x2, y: y2 });
                 }
+                ft_layers.push(ft_layer1);
+                ft_layers.push(ft_layer2);
             }
         }
         let mut g = Group::new("foot".to_string());
         let colors_poly = ["pink", "red", "yellow"];
-        let colors_stroke = ["blue", "aqua", "green"];
+        let colors_stroke = ["chartreuse", "chocolate", "orange"];
         let mut i = 0;
         for layer in ft_layers.iter() {
-            g.add(poly(
-                layer,
+            // these polys are roughly triangles that cover partway up texture linex
+            // and reach the base
+            g.add(poly(layer,
                 PolyArgs {
                     x_off,
                     y_off,
                     fil: colors_poly[i % 3].to_string(),
                     stroke: "none".to_string(),
-                    width: 0.,
-                    name: Some("ft-poly".to_string()),
+                    ..PolyArgs::default(Some("ft-poly".to_string()))
                 },
             ));
 
             // Draw the bottom and lines on the foot of the mountain
-
-            let stroke_pts = layer
-                .iter()
-                .map(|p| Point {
-                    x: p.x + x_off,
-                    y: p.y + y_off,
-                })
-                .collect();
+            // these lines cover the base of the mountain and outline
+            // the shading above.
             g.add(stroke(
                 noise,
-                &stroke_pts,
+                &layer.iter()
+                    .map(|p| Point { x: p.x + x_off, y: p.y + y_off })
+                    .collect(),
                 StrokeArgs {
                     // col: color_a(100, 100, 100, 0.1 +(r1 * 0.1)),
                     col: colors_stroke[i % 3].to_string(),
@@ -285,7 +281,7 @@ pub fn mountain(
     ));
 
     // foot
-    // group.add(foot(noise, &layers, x_off, y_off));
+    group.add(foot(noise, &layers, x_off, y_off));
 
     // texture
     let shading = noise.rand_choice_arrf(&[0., 0., 0., 0., 5.]);
