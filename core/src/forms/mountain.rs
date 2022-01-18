@@ -678,6 +678,9 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> S
         let mut k = 0.;
         while k < 2. + (noise.rand() * 3.) {
             // add tree08
+            let x = xr + noise.norm_rand(-30., 30.).max(gr_bound.x_min).max(gr_bound.x_max);
+            let height = 60. + noise.rand() * 40.;
+            g.add(tree08(noise, x, yr,TreeArgs { height, ..TreeArgs::default08()}));
             k += 1.;
         }
     }

@@ -176,8 +176,8 @@ impl Noise {
         ()
     }
 
-   pub fn norm_rand(&mut self, little_m: f64, big_m: f64) -> f64 {
-        map_val(self.rand(), 0., 1., little_m, big_m)
+   pub fn norm_rand(&mut self, low: f64, high: f64) -> f64 {
+        map_val(self.rand(), 0., 1., low, high)
     }
 
     pub fn rand_bool(&mut self) -> bool {
