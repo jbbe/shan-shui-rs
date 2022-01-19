@@ -84,6 +84,15 @@ const MEM = {
   lasttick: -1,
 };
 
+
+function setSVG(svg: string) {
+  document.getElementById("BG").innerHTML = svgTemplate(
+    CONFIG.windowWidth,
+    CONFIG.windowHeight,
+      calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight),
+          svg);
+}
+
 window.onload = () => {
   rust.then((m) => {
     function drawBackground(seed: number) {
@@ -111,30 +120,29 @@ window.onload = () => {
         console.log("seed", seed);
         m.draw_background(seed);
       };
-      let paintingXface = m.init(seed);
+      let painting = m.init(seed);
       // @ts-ignore
       function update() {
         // return
         console.log("update!", MEM.cursx, MEM.cursx + CONFIG.windowWidth, MEM);
         // console.profile("update")
         console.time("update")
-        let svg = m.update(paintingXface, MEM.cursx, MEM.cursx + CONFIG.windowWidth);
+        let svg = m.update(painting, MEM.cursx, MEM.cursx + CONFIG.windowWidth);
         console.timeEnd("update")
+        setSVG(svg);
         // console.profileEnd("update")
-        document.getElementById("BG").innerHTML = svgTemplate(
-          CONFIG.windowWidth,
-          CONFIG.windowHeight,
-          calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight),
-          svg);
       }
+
 
       function changeSeed() {
         let seed = parseFloat((document.getElementById('seed') as HTMLInputElement).value);
         console.log("seed", seed);
-        m.dispose(paintingXface);
-        paintingXface = m.init(seed);
+        m.dispose(painting);
+        painting = m.init(seed);
         update()
       }
+
+
 
       const generateBtn = document.getElementById('gen-seed')
       generateBtn.onclick = () => changeSeed()
@@ -183,13 +191,26 @@ window.onload = () => {
       const lPanel = document.getElementById("L");
 
       lPanel.onclick = () => xcroll(-1000);
+
+      document.getElementById("left-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP')as HTMLInputElement).value));
+      document.getElementById("right-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP')as HTMLInputElement).value));
+
+
+      document.getElementById("dwnld-btn").onclick = () => 
+
       MEM.lasttick = new Date().getTime();
       document
         .getElementById("BG")
         .setAttribute("style", "width:" + CONFIG.windowWidth + "px");
-      requestAnimationFrame(() => update());
+      // requestAnimationFrame(() => update());
       document.body.scrollTo(0, 0);
       console.log(["SCROLLX", window.scrollX]);
+      console.time('preload');
+      m.preload(painting, 0, 1000);
+      console.timeEnd('preload');
+      console.time('render');
+      setSVG(m.render(painting, 0, 1000));
+      console.timeEnd('render');
       present();
 
     } catch (e) {

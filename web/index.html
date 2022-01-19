@@ -30,9 +30,6 @@
             width: 512px;
         }
         #button-container {
-            /* position: absolute; */
-            /* left: 5px;
-            top: 10px; */
             display: flex;
             flex-direction: column;
             position:fixed; 
@@ -113,45 +110,34 @@
       <div style="height:4px"></div>
       <div id="MENU">
         <table>
-          <tr>
-            <td>
-              <pre>SEED</pre>
-            </td>
-          </tr>
+          <tr><td><pre>SEED</pre></td></tr>
           <tr>
             <td>
               <input title="random seed" id="seed" value="2666" />
               <button id="gen-seed">Generate</button>
             </td>
           </tr>
-          <tr>
-            <td>
-              <pre>VIEW</pre>
-            </td>
+          <tr><td><pre>VIEW</pre></td>
           </tr>
           <tr>
             <td>
-              <button title="view left" onclick="xcroll(-parseFloat(document.getElementById('INC_STEP').value))">
-                </button>
+              <button title="view left" id="left-menu-btn">
+                  <font id="SET_BTN.t" size="4px" class="closed">❮</font>
+              </button>
                   <input title="increment step" id="INC_STEP" type="number" value="200" min="0" max="10000" step="20"/>
-            <button
-              title="view right"
-              onclick="xcroll(parseFloat(document.getElementById('INC_STEP').value))"
-            >
-            </button>
+                <button title="view right" id="right-menu-btn">
+                  <font id="SET_BTN.t" size="4px" class="closed">❯</font>
+                </button>
           </td>
         </tr>
 
         <tr>
-          <td>
-            <pre><input id = "AUTO_SCROLL" type="checkbox">Auto-scroll</pre>
-          </td>
-
+          <td><pre><input id = "AUTO_SCROLL" type="checkbox">Auto-scroll</pre></td>
           <td></td>
         </tr>
 
         <tr>
-          <td><pre>SAVE</pre></td>
+          <td><pre><button id="dwnld-btn">SAVE</button></pre></td>
         </tr>
         <!-- <tr>
           <td>

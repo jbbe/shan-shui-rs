@@ -184,17 +184,9 @@ impl State {
         } else if p.tag == Tag::DistMount {
             let seed = noise.rand();
             let len = noise.rand_choice_arrf(&[500., 100., 1500.]);
-            dist_mount(
-                noise,
-                p.x,
-                p.y,
-                seed,
-                DistMountArgs {
-                    height: 150.,
-                    len,
-                    ..DistMountArgs::default()
-                },
-            )
+            dist_mount(noise,p.x, p.y, seed,DistMountArgs { 
+                height: 150., len, ..DistMountArgs::default() 
+            })
         } else if p.tag == Tag::Boat {
             let args = BoatArgs {
                 scale: p.y / 800.,
@@ -349,6 +341,10 @@ impl Painting {
         }
         println!("Rendered {} chunks", canv.len());
         canv.join("")
+    }
+
+    pub fn preload(&mut self, x_min: f64, x_max: f64) {
+        self.state.gen_chunks(&mut self.noise, x_min, x_max)
     }
 
     pub fn update(&mut self, x_min: f64, x_max: f64) -> String {

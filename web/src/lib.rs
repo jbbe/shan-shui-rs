@@ -13,16 +13,16 @@ extern "C" {
 
 
 #[wasm_bindgen]
-pub fn init(seed: i32) -> *mut PaintingXFace {
+pub fn init(seed: i32) -> *mut Painting {
 // pub fn get_painting_ptr(seed: i32) -> *mut PaintingXFace {
     console_error_panic_hook::set_once();
         
-    let p = Box::new(PaintingXFace::new(seed as f64));
+    let p = Box::new(Painting::new(seed as f64));
     Box::into_raw(p)
 }
 
 #[wasm_bindgen]
-pub fn update(p: *mut PaintingXFace, x_min: f64, x_max: f64) -> String {
+pub fn update(p: *mut Painting, x_min: f64, x_max: f64) -> String {
     console_error_panic_hook::set_once();
     log("update!!!");
     let x_face = unsafe { &mut *p };
@@ -31,7 +31,28 @@ pub fn update(p: *mut PaintingXFace, x_min: f64, x_max: f64) -> String {
 }
 
 #[wasm_bindgen]
-pub fn dispose(p: *mut PaintingXFace) {
+pub fn preload(p: *mut Painting, x_min: f64, x_max: f64) {
+    let painting = unsafe { &mut *p };
+    painting.preload(x_min, x_max);
+}
+
+#[wasm_bindgen]
+pub fn render(p: *mut Painting, x_min: f64, x_max: f64) -> String {
+    let painting = unsafe { &mut *p };
+    painting.chunk_render(x_min, x_max)
+}
+// #[wasm_bindgen]
+// pub fn render(p: *mut Painting, x_min: f64, x_max: f64) -> String {
+//     console_error_panic_hook::set_once();
+//     log("update!!!");
+//     let x_face = unsafe { &mut *p };
+//     log("Unboxed!!");
+//     x_face.update(x_min, x_max)
+// }
+
+
+#[wasm_bindgen]
+pub fn dispose(p: *mut Painting) {
     // p.dispose();
 }
 // #[wasm_bindgen(start)]
@@ -105,36 +126,31 @@ pub fn draw_background(seed: f64) -> String {
     // ()
 }
 
-// #[wasm_bindgen]
-// fn init_painting(seed: )
 
-// #[wasm_bindgen(update)]
-// fn update(curx: f64, windx) {
-
+// pub struct PaintingXFace {
+//     pub p: shan_shui::Painting,
 // }
 
-// #[derive(IntoWasmAbi)]
 // #[wasm_bindgen]
-pub struct PaintingXFace {
-    pub p: shan_shui::Painting,
-}
+// impl PaintingXFace {
+//     // #[wasm_bindgen(constructor)]
+//     pub fn new(seed: f64) -> Self {
+//         Self {
+//             p: shan_shui::Painting::new(seed),
+//         }
+//     }
 
-// #[wasm_bindgen]
-impl PaintingXFace {
-    // #[wasm_bindgen(constructor)]
-    pub fn new(seed: f64) -> Self {
-        Self {
-            p: shan_shui::Painting::new(seed),
-        }
-    }
+//     // #[wasm_bindgen(update)]
+//     pub fn update(&mut self, x_min: f64, x_max: f64) -> String {
+//         // let s = format!("{}", self.p.chunks.len().as_string()); 
+//         // log(&s);
+//         let res = self.p.update(x_min, x_max);
+//         // log(self.p.chunks.len().as_string());
+//         res
+//     }
 
-    // #[wasm_bindgen(update)]
-    pub fn update(&mut self, x_min: f64, x_max: f64) -> String {
-        // let s = format!("{}", self.p.chunks.len().as_string()); 
-        // log(&s);
-        let res = self.p.update(x_min, x_max);
-        // log(self.p.chunks.len().as_string());
-        res
-    }
+//     pub fn preload(&mut self, x_min: f64, x_max: f64) {
+//         self.p.gen_chunks(x_min, x_max);
+//     }
 
-}
+// }
