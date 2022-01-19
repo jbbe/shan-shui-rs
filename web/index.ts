@@ -57,8 +57,6 @@ function present() {
 
   pFrame += step;
 
-  //console.log([lastScrollX,currScrollX]);
-
   if (pFrame < 19 || Math.abs(lastScrollX - currScrollX) < step * 2) {
     lastScrollX = currScrollX;
     setTimeout(present, 0);
@@ -93,7 +91,6 @@ function setSVG(svg: string) {
           svg);
 }
 
-window.onload = () => {
   rust.then((m) => {
     function drawBackground(seed: number) {
       console.log("drawing background", seed);
@@ -158,8 +155,7 @@ window.onload = () => {
         // }
       }
       function autoxcroll(v: number) {
-        // @ts-ignore
-        if (document.getElementById("AUTO_SCROLL").checked) {
+        if ((document.getElementById("AUTO_SCROLL") as HTMLInputElement).checked) {
           xcroll(v);
           setTimeout(function () {
             autoxcroll(v);
@@ -202,14 +198,14 @@ window.onload = () => {
       document
         .getElementById("BG")
         .setAttribute("style", "width:" + CONFIG.windowWidth + "px");
-      // requestAnimationFrame(() => update());
       document.body.scrollTo(0, 0);
       console.log(["SCROLLX", window.scrollX]);
       console.time('preload');
-      m.preload(painting, 0, 1000);
+      m.preload(painting, 0, 800);
       console.timeEnd('preload');
       console.time('render');
-      setSVG(m.render(painting, 0, 1000));
+      setSVG(m.render(painting, 0, 800));
+      requestAnimationFrame(() => m.preload(painting, 800, 3000));
       console.timeEnd('render');
       present();
 
@@ -217,7 +213,6 @@ window.onload = () => {
       console.error("start didn't work", e);
     }
   });
-};
 
 const svgTemplate = (w: number, h: number, vb: string, svg: string) => `<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='${w}'
       height='${h}' style='mix-blend-mode:multiply;' viewBox ='${vb}'>
