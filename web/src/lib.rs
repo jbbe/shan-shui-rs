@@ -14,7 +14,6 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn init(seed: i32) -> *mut Painting {
-// pub fn get_painting_ptr(seed: i32) -> *mut PaintingXFace {
     console_error_panic_hook::set_once();
         
     let p = Box::new(Painting::new(seed as f64));
@@ -41,40 +40,14 @@ pub fn render(p: *mut Painting, x_min: f64, x_max: f64) -> String {
     let painting = unsafe { &mut *p };
     painting.chunk_render(x_min, x_max)
 }
-// #[wasm_bindgen]
-// pub fn render(p: *mut Painting, x_min: f64, x_max: f64) -> String {
-//     console_error_panic_hook::set_once();
-//     log("update!!!");
-//     let x_face = unsafe { &mut *p };
-//     log("Unboxed!!");
-//     x_face.update(x_min, x_max)
-// }
+
 
 
 #[wasm_bindgen]
-pub fn dispose(p: *mut Painting) {
+pub fn dispose(_p: *mut Painting) {
     // p.dispose();
 }
-// #[wasm_bindgen(start)]
-// pub fn start() {
-    // console_error_panic_hook::set_once();
 
-    // let svg_str = shan_shui::svg_string(200.);
-    // log("shan shui generated");
-    // let document = window().unwrap().document().unwrap();
-    // let body = document.body().unwrap();
-    // let _div = document.create_element("svg")
-    //     .unwrap() ;
-    // let div = _div
-    //     .dyn_ref::<HtmlElement>()
-    //     .unwrap();
-    // div.set_inner_html(&svg_str);
-    // div.set_class_name("svg-container");
-    // body.append_child(&div);
-
-    // ()
-// }
-// 
 #[wasm_bindgen]
 pub fn draw_background(seed: f64) -> String {
     console_error_panic_hook::set_once();
@@ -125,32 +98,3 @@ pub fn draw_background(seed: f64) -> String {
     //     .set_property("backgroundImage", format!("url({})", img));
     // ()
 }
-
-
-// pub struct PaintingXFace {
-//     pub p: shan_shui::Painting,
-// }
-
-// #[wasm_bindgen]
-// impl PaintingXFace {
-//     // #[wasm_bindgen(constructor)]
-//     pub fn new(seed: f64) -> Self {
-//         Self {
-//             p: shan_shui::Painting::new(seed),
-//         }
-//     }
-
-//     // #[wasm_bindgen(update)]
-//     pub fn update(&mut self, x_min: f64, x_max: f64) -> String {
-//         // let s = format!("{}", self.p.chunks.len().as_string()); 
-//         // log(&s);
-//         let res = self.p.update(x_min, x_max);
-//         // log(self.p.chunks.len().as_string());
-//         res
-//     }
-
-//     pub fn preload(&mut self, x_min: f64, x_max: f64) {
-//         self.p.gen_chunks(x_min, x_max);
-//     }
-
-// }
