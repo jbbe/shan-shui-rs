@@ -30,11 +30,15 @@
             width: 512px;
         }
         #button-container {
-            position: absolute;
-            left: 5px;
-            top: 10px;
+            /* position: absolute; */
+            /* left: 5px;
+            top: 10px; */
             display: flex;
             flex-direction: column;
+            position:fixed; 
+            z-index:1000; 
+            left: 4px; 
+            top: 3px;
             
         }
         button {
@@ -77,19 +81,95 @@
         #BG {
           min-width: 100vw;
         }
+
+        #SET_BTN {
+          width: 32px;
+          height: 32px;
+          color:rgba(0,0,0,0.4);
+          border: 1px solid rgba(0,0,0,0.4);
+          text-align: center;
+          display: table;
+          cursor: pointer;
+          background-color: rgba(0,0,0,0);
+        }
+        #SET_BTN:hover {
+          background-color: rgba(0,0,0,0);
+        }
+        #MENU {
+          display:none;
+          background-color: rgba(0,0,0,0.1);
+          border: 1px solid rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body >
     <div id="button-container">
-         <!-- <button id="add">add</button>
-        <button id="reset">reset</button>
-        <button id="mount">mount</button>
-        <button id="boat">boat</button>
-        <button id="download">download</button> -->
+    
+      <div id="SET_BTN" title="Settings">
+        <div style="display:table-cell; vertical-align: middle;">
+          <font id="SET_BTN.t" size="4px" class="closed"> &#x2630; </font>
+        </div>
+      </div>
+      <div style="height:4px"></div>
+      <div id="MENU">
+        <table>
+          <tr>
+            <td>
+              <pre>SEED</pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input title="random seed" id="seed" value="2666" />
+              <button id="gen-seed">Generate</button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre>VIEW</pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <button title="view left" onclick="xcroll(-parseFloat(document.getElementById('INC_STEP').value))">
+                </button>
+                  <input title="increment step" id="INC_STEP" type="number" value="200" min="0" max="10000" step="20"/>
+            <button
+              title="view right"
+              onclick="xcroll(parseFloat(document.getElementById('INC_STEP').value))"
+            >
+            </button>
+          </td>
+        </tr>
 
-        <input value="4242" id="seed" type="number">
+        <tr>
+          <td>
+            <pre><input id = "AUTO_SCROLL" type="checkbox">Auto-scroll</pre>
+          </td>
+
+          <td></td>
+        </tr>
+
+        <tr>
+          <td><pre>SAVE</pre></td>
+        </tr>
+        <!-- <tr>
+          <td>
+            <button
+              title="WARNING: This may take a while..."
+              type="button"
+              id="dwn-btn"
+              value="Download as SVG"
+              onclick="download(''+(Math.random())+'.svg', document.getElementById('BG').innerHTML);"
+            >
+              Download as .SVG
+            </button>
+          </td>
+        </tr> -->
+      </table>
     </div>
-    <!-- <div id="svg-container"></div> -->
+  </div>
+
     <canvas style="display:none" id="bg-canvas"></canvas>
 
   <table style="border-bottom: 1px solid rgba(0,0,0,0.1);">

@@ -39,9 +39,8 @@ pub fn rock(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RockArgs
             let a = (j as f64 / resof[1]) * PI * 2. - (PI / 2.);
             let l = // should give this a better name but i'm not sure entirely what it represents length?
                 ((args.width * args.height) / 
-                f64::sqrt(
-                    f64::powi(args.height * f64::cos(a), 2) 
-                        * f64::powi(args.width * f64::sin(a), 2)))
+                ((args.height * a.cos()).powi(2) 
+                + (args.width * a.sin()).powi(2)).sqrt())
                 * 0.7 + 0.3 * ns_list[j];
 
             let p = 1. - (i_f / resof[0]);

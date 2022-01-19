@@ -7,63 +7,6 @@ function getSvgFromAPI(path: string) {
   return fetch(`http://localhost:6767${path ?? ""}/${seed}`);
 }
 
-const svgTemplate = (w: number, h: number, vb: string, svg: string) => `<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='${w}'
-      height='${h}' style='mix-blend-mode:multiply;' viewBox ='${vb}'>
-      <g id='G' transform='translate(0,0)'>${svg}</g></svg>`;
-
-async function getChunk(path: string) {
-  console.log("requesting chunk", path);
-  const resp = await getSvgFromAPI(path);
-  const data = await resp.text();
-  console.log("received chunk appending..");
-  const container = document.getElementById("svg-container");
-  const div = document.createElement("div");
-  div.innerHTML = svgTemplate(512, 512, calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight), data);
-  container.appendChild(div);
-}
-
-function reset() {
-  const container = document.getElementById("svg-container");
-  while (container.lastChild) {
-    container.removeChild(container.lastChild);
-  }
-}
-function download() {
-  const svgContainer = document.getElementById("svg-container");
-  for (let i = 0; i < svgContainer.childElementCount; i++) {
-    console.log("Downloading...", i);
-    const svg = svgContainer.children[i];
-    const d = new Date().toTimeString().substring(0, 5);
-    const el = document.createElement("a");
-    // let img = new Image(),
-    //     serializer = new XMLSerializer(),
-    //     svgStr = serializer.serializeToString(svg);
-
-    // img.src = 'data:image/svg+xml;base64,'+window.btoa(svgStr);
-
-    // You could also use the actual string without base64 encoding it:
-    //img.src = "data:image/svg+xml;utf8," + svgStr;
-
-    // var canvas = document.createElement("canvas");
-
-    // canvas.width = 512;
-    // canvas.height = 512;
-    // canvas.getContext("2d").drawImage(img,0,0,512,512);
-
-    // var imgURL = canvas.toDataURL("image/png");
-    // element.href = imgURL;
-    // element.setAttribute("href", "data:text/play;charset=utf8" + svg.innerHTML);
-    el.setAttribute(
-      "href",
-      "data:text/plain;charset=utf8," + encodeURIComponent(svg.innerHTML)
-    );
-    el.setAttribute("download", `shan-shui-${d.substring(0, 6)}-${i}.svg`);
-    el.style.display = "none";
-    document.body.appendChild(el);
-    el.click();
-    document.body.removeChild(el);
-  }
-}
 var mouseX = 0;
 var mouseY = 0;
 function onMouseUpdate(e: MouseEvent) {
@@ -88,23 +31,23 @@ function viewupdate() {
   }
   //setTimeout(viewupdate,100)
 }
-// function needupdate() {
-//   return true;
-//   if (MEM.xmin < MEM.cursx && MEM.cursx < MEM.xmax - MEM.windx) {
-//     return false;
-//   }
-//   return true;
-// }
-
 
 function toggleVisible(id: string) {
   var v = document.getElementById(id).style.display == "none";
   document.getElementById(id).style.display = v ? "block" : "none";
 }
+
 function toggleText(id: string, a: string, b: string) {
-  var v = document.getElementById(id).innerHTML;
-  document.getElementById(id).innerHTML = v == "" || v == b ? a : b;
+  const el = document.getElementById(id)
+  if(el.className === "closed") {
+    el.innerHTML = a;
+    el.className = "open"
+  } else {
+    el.innerHTML = b;
+    el.className = "closed"
+  }
 }
+
 var lastScrollX = -1;
 var pFrame = -1;
 function present() {
@@ -143,10 +86,6 @@ const MEM = {
 
 window.onload = () => {
   rust.then((m) => {
-    // @ts-ignore
-    window.rust = m;
-    // getChunk()
-
     function drawBackground(seed: number) {
       console.log("drawing background", seed);
       document.getElementsByTagName("body")[0].style.backgroundImage = "";
@@ -156,10 +95,14 @@ window.onload = () => {
       document.getElementsByTagName("body")[0].style.backgroundImage =
         "url(" + img + ")";
     }
+
+    // let bkrndWorkerData = new Blob([])
+    // const bkrgndWorkVker = new Worker()
     try {
       const seedInput = document.getElementById("seed");
       // @ts-ignore
       const seed = (parseInt(seedInput.value) * new Date()) % 22424023;
+      console.log(seed)
       // @ts-ignore
       seedInput.value = seed;
       seedInput.onchange = (e) => {
@@ -168,7 +111,7 @@ window.onload = () => {
         console.log("seed", seed);
         m.draw_background(seed);
       };
-      const paintingXface = m.init(seed);
+      let paintingXface = m.init(seed);
       // @ts-ignore
       function update() {
         // return
@@ -179,11 +122,23 @@ window.onload = () => {
         console.timeEnd("update")
         // console.profileEnd("update")
         document.getElementById("BG").innerHTML = svgTemplate(
-          CONFIG.windowWidth, 
+          CONFIG.windowWidth,
           CONFIG.windowHeight,
           calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight),
           svg);
       }
+
+      function changeSeed() {
+        let seed = parseFloat((document.getElementById('seed') as HTMLInputElement).value);
+        console.log("seed", seed);
+        m.dispose(paintingXface);
+        paintingXface = m.init(seed);
+        update()
+      }
+
+      const generateBtn = document.getElementById('gen-seed')
+      generateBtn.onclick = () => changeSeed()
+
       // @ts-ignore
       function xcroll(v) {
         console.log("xcroll ", v)
@@ -194,31 +149,29 @@ window.onload = () => {
         //   viewupdate();
         // }
       }
-      //   function autoxcroll(v) {
-      // // @ts-ignore
-      //     if (document.getElementById("AUTO_SCROLL").checked) {
-      //       xcroll(v);
-      //       setTimeout(function () {
-      //         autoxcroll(v);
-      //       }, 1999);
-      //     }
-      //   }
+      function autoxcroll(v: number) {
+        // @ts-ignore
+        if (document.getElementById("AUTO_SCROLL").checked) {
+          xcroll(v);
+          setTimeout(function () {
+            autoxcroll(v);
+          }, 1999);
+        }
+      }
+      const autoScrollEl = document.getElementById("AUTO_SCROLL")
+      autoScrollEl.onchange = () => autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
+
+      window.addEventListener("scroll", function (e) {
+        document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
+      });
+
       requestAnimationFrame(() => drawBackground(Math.random()));
 
-      // const addButton = document.getElementById("add");
-      // addButton.onclick = () => getChunk();
-
-      // const resetButton = document.getElementById("reset");
-      // resetButton.onclick = reset;
-
-      // const boat = document.getElementById("boat");
-      // boat.onclick = () => getChunk("/boat");
-
-      // const mount = document.getElemxcrentById("mount");
-      // mount.onclick = () => getChunk("/mount");
-
-      // const downloadButton = document.getElementById("download");
-      // downloadButton.onclick = () => download();
+      const SET_BTN = document.getElementById('SET_BTN');
+      SET_BTN.onclick = () => {
+        toggleVisible("MENU");
+        toggleText('SET_BTN.t', '&#x2630;', '&#x2715;');
+      }
 
       document.addEventListener("mousemove", onMouseUpdate, false);
       document.addEventListener("mouseenter", onMouseUpdate, false);
@@ -244,3 +197,44 @@ window.onload = () => {
     }
   });
 };
+
+const svgTemplate = (w: number, h: number, vb: string, svg: string) => `<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='${w}'
+      height='${h}' style='mix-blend-mode:multiply;' viewBox ='${vb}'>
+      <g id='G' transform='translate(0,0)'>${svg}</g></svg>`;
+
+function download() {
+  const svgContainer = document.getElementById("svg-container");
+  for (let i = 0; i < svgContainer.childElementCount; i++) {
+    console.log("Downloading...", i);
+    const svg = svgContainer.children[i];
+    const d = new Date().toTimeString().substring(0, 5);
+    const el = document.createElement("a");
+    // let img = new Image(),
+    //     serializer = new XMLSerializer(),
+    //     svgStr = serializer.serializeToString(svg);
+
+    // img.src = 'data:image/svg+xml;base64,'+window.btoa(svgStr);
+
+    // You could also use the actual string without base64 encoding it:
+    //img.src = "data:image/svg+xml;utf8," + svgStr;
+
+    // var canvas = document.createElement("canvas");
+
+    // canvas.width = 512;
+    // canvas.height = 512;
+    // canvas.getContext("2d").drawImage(img,0,0,512,512);
+
+    // var imgURL = canvas.toDataURL("image/png");
+    // element.href = imgURL;
+    // element.setAttribute("href", "data:text/play;charset=utf8" + svg.innerHTML);
+    el.setAttribute(
+      "href",
+      "data:text/plain;charset=utf8," + encodeURIComponent(svg.innerHTML)
+    );
+    el.setAttribute("download", `shan-shui-${d.substring(0, 6)}-${i}.svg`);
+    el.style.display = "none";
+    document.body.appendChild(el);
+    el.click();
+    document.body.removeChild(el);
+  }
+}

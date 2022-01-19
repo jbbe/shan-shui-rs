@@ -1,3 +1,4 @@
+use shan_shui::Painting;
 // extern crate wasm_bindgen;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -27,6 +28,11 @@ pub fn update(p: *mut PaintingXFace, x_min: f64, x_max: f64) -> String {
     let x_face = unsafe { &mut *p };
     log("Unboxed!!");
     x_face.update(x_min, x_max)
+}
+
+#[wasm_bindgen]
+pub fn dispose(p: *mut PaintingXFace) {
+    // p.dispose();
 }
 // #[wasm_bindgen(start)]
 // pub fn start() {

@@ -1,5 +1,4 @@
 use super::super::*;
-// {Noise, Point, poly, PolyArgs, texture, TextureArgs, stroke, };
 use super::*;
 use core::f64::consts::PI;
 use std::collections::VecDeque;
@@ -590,13 +589,6 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
 
     let gr_list = gr_zip(&mut gr_list_1, &mut gr_list_2);
 
-    let str_pts = gr_list
-        .iter()
-        .map(|p| Point {
-            x: p.x + x_off,
-            y: p.y + y_off,
-        })
-        .collect();
     g.add(poly(
         &gr_list,
         PolyArgs {
@@ -609,7 +601,8 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
         },
     ));
     g.add(stroke(noise,
-        &str_pts,
+    &gr_list.iter()
+        .map(|p| Point {x: p.x + x_off, y: p.y + y_off}).collect(),
         StrokeArgs {
             width: 3.,
             col: color_a(100, 100, 100, 0.2),
@@ -807,7 +800,7 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> S
         // add tree02
         let x = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
         let y = y_off + noise.norm_rand(gr_bound.y_min, gr_bound.y_max);
-        g.add(tree02(noise, x, y, TreeArgs::default01())); // FIXME ( default args for tree2)
+        g.add(tree02(noise, x, y, TreeArgs::default02())); // FIXME ( default args for tree2)
 
         i += 1.;
     }
@@ -917,9 +910,19 @@ pub fn dist_mount(
                 ..PolyArgs::default(Some("dst mnt".to_string()))
             },
         ));
-        //  let t = polytools.triangulate
+        //  let t = triangulate(&pt_list[i], TriangulateArgs { 
+        //      area: 100.,
+        //      convex: true,
+        //      optimize: false,
+        //      ..TriangulateArgs::default()});
         // for k in 0..(t.len()) {
-        // let m =
+        //     let m = mid_pt(&t[k]);
+        //     let co = get_col(noise, m.x, m.y);
+        //     g.add(poly(&t[k], PolyArgs { 
+        //         fil: co.clone(),
+        //         stroke: co,
+        //         width: 1.,
+        //         ..PolyArgs::default(Some("dstm".to_string()))}))
         // }
     }
     g.to_string()
