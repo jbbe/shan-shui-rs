@@ -754,9 +754,10 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> S
         }
     } else if tt == 2 {
         for _i in 0..(noise.rand_choice_arr(&[1, 1, 1, 1, 2, 2, 3])) {
-            let _xr = noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
-            let _yr = (gr_bound.y_min + gr_bound.y_max) / 2.;
+            let xr = noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+            let yr = (gr_bound.y_min + gr_bound.y_max) / 2.;
             // add tree 04
+            g.add(tree04(noise, x_off + xr, y_off + yr + 20., TreeArgs::default04()));
 
             let mut j = 0.;
             while j < noise.rand() * 2. {

@@ -221,7 +221,6 @@ impl Noise {
 /*
 * Pseudo Random Number Generator
 */
-
 pub struct Prng {
     s: f64,
     p: f64,
