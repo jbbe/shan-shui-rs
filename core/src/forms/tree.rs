@@ -339,7 +339,7 @@ pub fn tree04(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
         StrokeArgs {
           width: 2.5,
           col,
-          fun: |x| {
+          fun: |_x| {
             1.0_f64.sin()
           },
           noi: 0.9,
@@ -621,7 +621,7 @@ fn twig(noise: &mut Noise, tx: f64, ty: f64, dep: f64, args: TwigArgs) -> String
 
     let a0 = ((noise.rand() * PI) / 6.) * args.dir + args.ang;
     for i in 0..tl {
-        let tfun = |x| { -1. / (i as f64 / tl as f64 + 1.).powi(5) + 1. };
+        let tfun = |_x| { -1. / (i as f64 / tl as f64 + 1.).powi(5) + 1. };
         let mx = args.dir * tfun(i as f64 / tl as f64) * 50. * args.sca * hs;
         let my = -i as f64 * 5. * args.sca;
 

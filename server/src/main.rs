@@ -6,14 +6,19 @@ use shan_shui::Painting;
 
 fn parse_seed(seed_str: &str) -> f64 {
     if seed_str == "" {
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("Tim went backwards")
-            .as_secs_f64()
-            * 1000.
+        rand_seed()
     } else {
         seed_str.parse::<f64>().unwrap()
     }
+}
+
+fn rand_seed() -> f64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("Tim went backwards")
+        .as_secs_f64()
+        * 1000.
+
 }
 
 fn main() {
@@ -41,6 +46,15 @@ fn main() {
             println!("route boat");
             painting.draw_boat()
         }
+        get "/man" => |_req, mut res| {
+            res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
+            res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
+            let seed = rand_seed();
+            let mut painting = shan_shui::Painting::new(seed);
+            println!("route boat");
+            painting.draw_man()
+        }
+
         get "/:seed" => |req, mut res| {
             res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
             res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);

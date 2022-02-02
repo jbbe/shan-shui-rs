@@ -393,6 +393,18 @@ impl Painting {
             mountain(&mut self.noise, 10., 300., seed, args),
         )
     }
+
+    pub fn draw_man(&mut self) -> String {
+        let resolution = 512.;
+        let seed = (2.) * self.noise.rand();
+        let args = ManArgs::default(&mut self.noise);
+        Painting::svg_template(
+            resolution,
+            resolution,
+            0.,
+            Man::man(&mut self.noise, 10., 300., args),
+        )
+    }
 }
 fn is_local_max(noise: &mut Noise, x: f64, y: f64, r: f64) -> bool {
     let f = |x: f64, _: f64| -> f64 { f64::max(noise.noise(x * SAMP, 0., 0.) - 0.55, 0.) * 2. };

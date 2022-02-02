@@ -35,6 +35,8 @@ pub fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
     format!("rgb({},{},{},{})", r, g, b, a)
 }
 
+pub type Line = (Point, Point);
+
 pub struct Group {
     contents: Vec<String>,
     name: String,
@@ -65,6 +67,48 @@ impl Group {
         }
     }
 }
+pub fn bezmh(p_in: Vec<Point>, w_in: Option<f64>) -> Vec<Point>{
+    let w =  match w_in {
+        Some(w) => w,
+        None =>  1. 
+    }; 
+    let P = if p_in.len() == 2 {
+      vec![p_in[0], mid_pt(&vec![p_in[0], p_in[1]]), p_in[1]]
+    } else {
+        p_in
+    };
+    let mut plist = vec![];
+    for j in 0..(P.len() - 2) {
+      let p0= if j == 0 {
+        P[j]
+      } else {
+        mid_pt(&vec![P[j], P[j + 1]])
+      };
+      let p1 = P[j + 1];
+      let p2 = if j == P.len() - 3 {
+        P[j + 2]
+      } else {
+        mid_pt(&vec![P[j + 1], P[j + 2]])
+      };
+      let pl = 20;
+      for  i in 0..(pl + (if j == P.len() - 3 { 1 } else { 0 })) {
+        let t = i as f64 / pl as f64;
+        let u = (1. - t).powi(2) + 2. * t * (1. - t) * w + t * t;
+        plist.push(Point {
+          x: ((1. - t).powi(2) * p0.x +
+            2. * t * (1. - t) * p1.x * w +
+            t * t * p2.x) /
+            u,
+          y: ((1. - t).powi(2) * p0.y +
+            2. * t * (1. - t) * p1.y * w +
+            t * t * p2.y) /
+            u,
+        });
+      }
+    }
+    plist
+  }
+
 
 pub struct PolyArgs {
     pub x_off: f64,
