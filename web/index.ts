@@ -39,7 +39,7 @@ function toggleVisible(id: string) {
 
 function toggleText(id: string, a: string, b: string) {
   const el = document.getElementById(id)
-  if(el.className === "closed") {
+  if (el.className === "closed") {
     el.innerHTML = a;
     el.className = "open"
   } else {
@@ -87,170 +87,164 @@ function setSVG(svg: string) {
   document.getElementById("BG").innerHTML = svgTemplate(
     CONFIG.windowWidth,
     CONFIG.windowHeight,
-      calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight),
-          svg);
+    calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight),
+    svg);
 }
 
-  rust.then((m) => {
-    function drawBackground(seed: number) {
-      console.log("drawing background", seed);
-      document.getElementsByTagName("body")[0].style.backgroundImage = "";
-      console.time("drawbkgrnd");
-      let img = m.draw_background(seed);
-      console.timeEnd("drawbkgrnd")
-      document.getElementsByTagName("body")[0].style.backgroundImage =
-        "url(" + img + ")";
+rust.then((m) => {
+  function drawBackground(seed: number) {
+    console.log("drawing background", seed);
+    document.getElementsByTagName("body")[0].style.backgroundImage = "";
+    console.time("drawbkgrnd");
+    let img = m.draw_background(seed);
+    console.timeEnd("drawbkgrnd")
+    document.getElementsByTagName("body")[0].style.backgroundImage =
+      "url(" + img + ")";
+  }
+
+  // let bkrndWorkerData = new Blob([])
+  // const bkrgndWorkVker = new Worker()
+  try {
+    const seedInput = document.getElementById("seed");
+    // @ts-ignore
+    const seed = (parseInt(seedInput.value) * new Date()) % 22424023;
+    console.log(seed)
+    // @ts-ignore
+    seedInput.value = seed;
+    seedInput.onchange = (e) => {
+      // @ts-ignore
+      let seed = parseFloat(e.target.value);
+      console.log("seed", seed);
+      m.draw_background(seed);
+    };
+    let painting = m.init(seed);
+    // @ts-ignore
+    function update() {
+      // return
+      console.log("update!", MEM.cursx, MEM.cursx + CONFIG.windowWidth, MEM);
+      // console.profile("update")
+      console.time("update")
+      let svg = m.update(painting, MEM.cursx, MEM.cursx + CONFIG.windowWidth);
+      console.timeEnd("update")
+      setSVG(svg);
+      // console.profileEnd("update")
     }
 
-    // let bkrndWorkerData = new Blob([])
-    // const bkrgndWorkVker = new Worker()
-    try {
-      const seedInput = document.getElementById("seed");
-      // @ts-ignore
-      const seed = (parseInt(seedInput.value) * new Date()) % 22424023;
-      console.log(seed)
-      // @ts-ignore
-      seedInput.value = seed;
-      seedInput.onchange = (e) => {
-        // @ts-ignore
-        let seed = parseFloat(e.target.value);
-        console.log("seed", seed);
-        m.draw_background(seed);
-      };
-      let painting = m.init(seed);
-      // @ts-ignore
-      function update() {
-        // return
-        console.log("update!", MEM.cursx, MEM.cursx + CONFIG.windowWidth, MEM);
-        // console.profile("update")
-        console.time("update")
-        let svg = m.update(painting, MEM.cursx, MEM.cursx + CONFIG.windowWidth);
-        console.timeEnd("update")
-        setSVG(svg);
-        // console.profileEnd("update")
-      }
 
-
-      function changeSeed() {
-        let seed = parseFloat((document.getElementById('seed') as HTMLInputElement).value);
-        console.log("seed", seed);
-        m.dispose(painting);
-        painting = m.init(seed);
-        update()
-      }
-
-
-
-      const generateBtn = document.getElementById('gen-seed')
-      generateBtn.onclick = () => changeSeed()
-
-      // @ts-ignore
-      function xcroll(v) {
-        console.log("xcroll ", v)
-        MEM.cursx += v;
-        // if (needupdate()) {
-        update();
-        // } else {
-        //   viewupdate();
-        // }
-      }
-      function autoxcroll(v: number) {
-        if ((document.getElementById("AUTO_SCROLL") as HTMLInputElement).checked) {
-          xcroll(v);
-          setTimeout(function () {
-            autoxcroll(v);
-          }, 1999);
-        }
-      }
-      const autoScrollEl = document.getElementById("AUTO_SCROLL")
-      autoScrollEl.onchange = () => autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
-
-      window.addEventListener("scroll", function (e) {
-        document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
-      });
-
-      requestAnimationFrame(() => drawBackground(Math.random()));
-
-      const SET_BTN = document.getElementById('SET_BTN');
-      SET_BTN.onclick = () => {
-        toggleVisible("MENU");
-        toggleText('SET_BTN.t', '&#x2630;', '&#x2715;');
-      }
-
-      document.addEventListener("mousemove", onMouseUpdate, false);
-      document.addEventListener("mouseenter", onMouseUpdate, false);
-
-      const rPanel = document.getElementById("R");
-
-      rPanel.onclick = () => xcroll(1000);
-
-      const lPanel = document.getElementById("L");
-
-      lPanel.onclick = () => xcroll(-1000);
-
-      document.getElementById("left-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP')as HTMLInputElement).value));
-      document.getElementById("right-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP')as HTMLInputElement).value));
-
-
-      document.getElementById("dwnld-btn").onclick = () => 
-
-      MEM.lasttick = new Date().getTime();
-      document
-        .getElementById("BG")
-        .setAttribute("style", "width:" + CONFIG.windowWidth + "px");
-      document.body.scrollTo(0, 0);
-      console.log(["SCROLLX", window.scrollX]);
-      console.time('preload');
-      m.preload(painting, 0, 800);
-      console.timeEnd('preload');
-      console.time('render');
-      setSVG(m.render(painting, 0, 800));
-      requestAnimationFrame(() => m.preload(painting, 800, 3000));
-      console.timeEnd('render');
-      present();
-
-    } catch (e) {
-      console.error("start didn't work", e);
+    function changeSeed() {
+      let seed = parseFloat((document.getElementById('seed') as HTMLInputElement).value);
+      console.log("seed", seed);
+      m.dispose(painting);
+      painting = m.init(seed);
+      update()
     }
-  });
+
+
+
+    const generateBtn = document.getElementById('gen-seed')
+    generateBtn.onclick = () => changeSeed()
+
+    // @ts-ignore
+    function xcroll(v) {
+      console.log("xcroll ", v)
+      MEM.cursx += v;
+      // if (needupdate()) {
+      update();
+      // } else {
+      //   viewupdate();
+      // }
+    }
+    function autoxcroll(v: number) {
+      if ((document.getElementById("AUTO_SCROLL") as HTMLInputElement).checked) {
+        xcroll(v);
+        setTimeout(function () {
+          autoxcroll(v);
+        }, 1999);
+      }
+    }
+    const autoScrollEl = document.getElementById("AUTO_SCROLL")
+    autoScrollEl.onchange = () => autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
+
+    window.addEventListener("scroll", function (e) {
+      document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
+    });
+
+    requestAnimationFrame(() => drawBackground(Math.random()));
+
+    const SET_BTN = document.getElementById('SET_BTN');
+    SET_BTN.onclick = () => {
+      toggleVisible("MENU");
+      toggleText('SET_BTN.t', '&#x2630;', '&#x2715;');
+    }
+
+    document.addEventListener("mousemove", onMouseUpdate, false);
+    document.addEventListener("mouseenter", onMouseUpdate, false);
+
+    const rPanel = document.getElementById("R");
+
+    rPanel.onclick = () => xcroll(1000);
+
+    const lPanel = document.getElementById("L");
+
+    lPanel.onclick = () => xcroll(-1000);
+
+    document.getElementById("left-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
+    document.getElementById("right-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
+
+    document.getElementById("dwnld-btn").onclick = download;
+
+    MEM.lasttick = new Date().getTime();
+    document
+      .getElementById("BG")
+      .setAttribute("style", "width:" + CONFIG.windowWidth + "px");
+    document.body.scrollTo(0, 0);
+    console.log(["SCROLLX", window.scrollX]);
+    console.time('preload');
+    m.preload(painting, 0, 800);
+    console.timeEnd('preload');
+    console.time('render');
+    setSVG(m.render(painting, 0, 800));
+    requestAnimationFrame(() => m.preload(painting, 800, 3000));
+    console.timeEnd('render');
+    present();
+
+  } catch (e) {
+    console.error("start didn't work", e);
+  }
+});
 
 const svgTemplate = (w: number, h: number, vb: string, svg: string) => `<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='${w}'
       height='${h}' style='mix-blend-mode:multiply;' viewBox ='${vb}'>
       <g id='G' transform='translate(0,0)'>${svg}</g></svg>`;
 
+
 function download() {
-  const svgContainer = document.getElementById("svg-container");
-  for (let i = 0; i < svgContainer.childElementCount; i++) {
-    console.log("Downloading...", i);
-    const svg = svgContainer.children[i];
-    const d = new Date().toTimeString().substring(0, 5);
-    const el = document.createElement("a");
-    // let img = new Image(),
-    //     serializer = new XMLSerializer(),
-    //     svgStr = serializer.serializeToString(svg);
+  console.log("Downloading...");
+  const svg = document.getElementById("BG").innerHTML;
+  // const svg = svgContainer.children[i
+  const d = new Date().toTimeString().substring(0, 5);
+  const el = document.createElement("a");
+  // let img = new Image(),
+  //     serializer = new XMLSerializer(),
+  //     svgStr = serializer.serializeToString(svg);
 
-    // img.src = 'data:image/svg+xml;base64,'+window.btoa(svgStr);
-
-    // You could also use the actual string without base64 encoding it:
-    //img.src = "data:image/svg+xml;utf8," + svgStr;
-
-    // var canvas = document.createElement("canvas");
-
-    // canvas.width = 512;
-    // canvas.height = 512;
-    // canvas.getContext("2d").drawImage(img,0,0,512,512);
-
-    // var imgURL = canvas.toDataURL("image/png");
-    // element.href = imgURL;
-    // element.setAttribute("href", "data:text/play;charset=utf8" + svg.innerHTML);
-    el.setAttribute(
-      "href",
-      "data:text/plain;charset=utf8," + encodeURIComponent(svg.innerHTML)
-    );
-    el.setAttribute("download", `shan-shui-${d.substring(0, 6)}-${i}.svg`);
-    el.style.display = "none";
-    document.body.appendChild(el);
-    el.click();
-    document.body.removeChild(el);
-  }
+  // img.src = 'data:image/svg+xml;base64,'+window.btoa(svgStr);
+  // You could also use the actual string without base64 encoding it:
+  //img.src = "data:image/svg+xml;utf8," + svgStr;
+  // var canvas = document.createElement("canvas");
+  // canvas.width = 512;
+  // canvas.height = 512;
+  // canvas.getContext("2d").drawImage(img,0,0,512,512);
+  // var imgURL = canvas.toDataURL("image/png");
+  // element.href = imgURL;
+  // element.setAttribute("href", "data:text/play;charset=utf8" + svg.innerHTML);
+  el.setAttribute(
+    "href",
+    "data:text/plain;charset=utf8," + encodeURIComponent(svg)
+  );
+  el.setAttribute("download", `shan-shui-${d.substring(0, 6)}.svg`);
+  el.style.display = "none";
+  document.body.appendChild(el);
+  el.click();
+  document.body.removeChild(el);
 }

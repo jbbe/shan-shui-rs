@@ -6,26 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shan Shui</title>
     <style>
-        body {
-            background-color: #bebebe; 
-            margin: 0; 
-            /* overflow: hidden;
-            display: grid;
-            place-content: center; */
-        }
-
-        #svg-container {
-            height: 512px;
-            width: 90vw;
-            overflow-x: scroll;
-            overflow-y: hidden;
-            display: flex;
-            position: absolute;
-            left: 160px;
-            top: 40px;
-            z-index: 4;
-        }
-        #svg-container div {
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background-color: #bebebe; 
+        margin: 0; 
+      }
+      #svg-container {
+        height: 512px;
+        width: 90vw;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        display: flex;
+        position: absolute;
+        left: 160px;
+        top: 40px;
+        z-index: 4;
+      }
+      #svg-container div {
             margin: 0px;
             width: 512px;
         }
@@ -94,7 +93,7 @@
         }
         #MENU {
           display:none;
-          background-color: rgba(0,0,0,0.1);
+          background-color: rgba(255,255,255,0.9);
           border: 1px solid rgba(0,0,0,0.4);
         }
     </style>
@@ -139,19 +138,6 @@
         <tr>
           <td><pre><button id="dwnld-btn">SAVE</button></pre></td>
         </tr>
-        <!-- <tr>
-          <td>
-            <button
-              title="WARNING: This may take a while..."
-              type="button"
-              id="dwn-btn"
-              value="Download as SVG"
-              onclick="download(''+(Math.random())+'.svg', document.getElementById('BG').innerHTML);"
-            >
-              Download as .SVG
-            </button>
-          </td>
-        </tr> -->
       </table>
     </div>
   </div>
