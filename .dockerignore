@@ -1,0 +1,8 @@
+*/perf.data*
+*Cargo.lock
+*.svg
+
+web
+native
+*/out
+*/target
