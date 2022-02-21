@@ -154,17 +154,21 @@ rust.then((m) => {
       //   viewupdate();
       // }
     }
+    let autoScrollTimeout: NodeJS.Timeout;
     function autoxcroll(v: number) {
       if ((document.getElementById("AUTO_SCROLL") as HTMLInputElement).checked) {
         xcroll(v);
-        setTimeout(function () {
+        if(autoScrollTimeout) {
+          clearTimeout(autoScrollTimeout);
+        }
+        autoScrollTimeout = setTimeout(function () {
           autoxcroll(v);
         }, 1999);
       }
     }
-    const autoScrollEl = document.getElementById("AUTO_SCROLL")
+    const autoScrollEl = document.getElementById("AUTO_SCROLL") as HTMLInputElement;
+    autoScrollEl.checked = true;
     autoScrollEl.onchange = () => autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
-
     window.addEventListener("scroll", function (e) {
       document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
     });
@@ -187,9 +191,10 @@ rust.then((m) => {
     const lPanel = document.getElementById("L");
 
     lPanel.onclick = () => xcroll(-1000);
+    const stepIncrEl = document.getElementById('INC_STEP') as HTMLInputElement;
 
-    document.getElementById("left-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
-    document.getElementById("right-menu-btn").onclick = () => xcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
+    document.getElementById("left-menu-btn").onclick = () => xcroll(parseFloat(stepIncrEl.value));
+    document.getElementById("right-menu-btn").onclick = () => xcroll(parseFloat(stepIncrEl.value));
 
     document.getElementById("dwnld-btn").onclick = download;
 
@@ -204,6 +209,7 @@ rust.then((m) => {
     console.timeEnd('preload');
     console.time('render');
     setSVG(m.render(painting, 0, 800));
+    autoxcroll(parseFloat(stepIncrEl.value));
     requestAnimationFrame(() => m.preload(painting, 800, 3000));
     console.timeEnd('render');
     present();
