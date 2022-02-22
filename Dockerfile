@@ -28,6 +28,6 @@ FROM scratch
 COPY --from=build /usr/local/cargo/bin/shan-shui-server .
 USER 1000
 
-EXPOSE 6767
-CMD ["./shan-shui-server"]
+EXPOSE 80
+CMD ["./shan-shui-server", "80"]
 # CMD ["./server/target/release/shan-shui-server"]

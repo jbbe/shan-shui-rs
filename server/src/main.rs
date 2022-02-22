@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate nickel;
 
+use std::env;
 use nickel::Nickel;
 use shan_shui::Painting;
 
@@ -23,6 +24,8 @@ fn rand_seed() -> f64 {
 
 fn main() {
     let mut server = Nickel::new();
+    let args: Vec<String> = env::args().collect();
+    let port = &args[1];
     // let mut sessions = std::collections::HashMap::new();
     // let shan_shui =
     server.utilize(nickel_cors::enable_cors);
@@ -66,5 +69,5 @@ fn main() {
             painting.full_svg(3000., 800.)
         }
     });
-    server.listen("127.0.0.1:6767").unwrap();
+    server.listen(format!("127.0.0.1:{}", &port)).unwrap();
 }
