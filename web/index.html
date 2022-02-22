@@ -1,154 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shan Shui</title>
-    <style>
-      html {
-        scroll-behavior: smooth;
-      }
-      body {
-        background-color: #bebebe; 
-        margin: 0; 
-      }
-      #svg-container {
-        height: 512px;
-        width: 90vw;
-        overflow-x: scroll;
-        overflow-y: hidden;
-        display: flex;
-        position: absolute;
-        left: 160px;
-        top: 40px;
-        z-index: 4;
-      }
-      #svg-container div {
-            margin: 0px;
-            width: 512px;
-        }
-        #button-container {
-            display: flex;
-            flex-direction: column;
-            position:fixed; 
-            z-index:1000; 
-            left: 4px; 
-            top: 3px;
-            
-        }
-        button {
-            background: #bebebebe;
-            border: 1px solid black;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #fff;
-        }
-        input {
-            background: #bebebebe;
-            border: none;
-            width:150px;
-        }
-        table {
-          border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-        .side-panel {
-          width: 31px;
-          text-align: center;
-          top: -1px;
-          color: rgba(-1,0,0,0.4);
-          cursor: pointer;
-          height: 100vh;
-          border: 0px solid rgba(0,0,0,0.4);
-          padding: 5px;
-        }
-        .side-button  {
-          display: grid;
-          place-content: center;
-        }
-        .side-button div {
-          vertical-align:middle;
-          display:table-cell"
-        }
-        .side-panel:hover {
-          background: rgba(255, 239, 207, 0.9)
-        }
-        #BG {
-          min-width: 100vw;
-        }
 
-        #SET_BTN {
-          width: 32px;
-          height: 32px;
-          color:rgba(0,0,0,0.4);
-          border: 1px solid rgba(0,0,0,0.4);
-          text-align: center;
-          display: table;
-          cursor: pointer;
-          background-color: rgba(0,0,0,0);
-        }
-        #SET_BTN:hover {
-          background-color: rgba(0,0,0,0);
-        }
-        #MENU {
-          display:none;
-          background-color: rgba(255,255,255,0.9);
-          border: 1px solid rgba(0,0,0,0.4);
-        }
-    </style>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shan Shui</title>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: #bebebe;
+      margin: 0;
+    }
+
+    #svg-container {
+      height: 512px;
+      width: 90vw;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      display: flex;
+      position: absolute;
+      left: 160px;
+      top: 40px;
+      z-index: 4;
+    }
+
+    #svg-container div {
+      margin: 0px;
+      width: 512px;
+    }
+
+    #button-container {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      z-index: 1000;
+      left: 4px;
+      top: 3px;
+
+    }
+
+    button {
+      background: #bebebebe;
+      border: 1px solid black;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #fff;
+    }
+
+    input {
+      background: #bebebebe;
+      border: none;
+      width: 150px;
+    }
+
+    table {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .side-panel {
+      width: 31px;
+      text-align: center;
+      top: -1px;
+      color: rgba(-1, 0, 0, 0.4);
+      cursor: pointer;
+      height: 100vh;
+      border: 0px solid rgba(0, 0, 0, 0.4);
+      padding: 5px;
+    }
+
+    .side-button {
+      display: grid;
+      place-content: center;
+    }
+
+    .side-button div {
+      vertical-align: middle;
+      display: table-cell"
+
+    }
+
+    .side-panel:hover {
+      background: rgba(255, 239, 207, 0.9)
+    }
+
+    #BG {
+      min-width: 100vw;
+    }
+
+    #SET_BTN {
+      width: 32px;
+      height: 32px;
+      color: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 0, 0, 0.4);
+      text-align: center;
+      display: table;
+      cursor: pointer;
+      background-color: rgba(0, 0, 0, 0);
+    }
+
+    #SET_BTN:hover {
+      background-color: rgba(0, 0, 0, 0);
+    }
+
+    #MENU {
+      display: none;
+      background-color: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.4);
+    }
+  </style>
 </head>
-<body >
-    <div id="button-container">
-    
-      <div id="SET_BTN" title="Settings">
-        <div style="display:table-cell; vertical-align: middle;">
-          <font id="SET_BTN.t" size="4px" class="closed"> &#x2630; </font>
-        </div>
+
+<body>
+  <div id="button-container">
+
+    <div id="SET_BTN" title="Settings">
+      <div style="display:table-cell; vertical-align: middle;">
+        <font id="SET_BTN.t" size="4px" class="closed"> &#x2630; </font>
       </div>
-      <div style="height:4px"></div>
-      <div id="MENU">
-        <table>
-          <tr><td><pre>SEED</pre></td></tr>
-          <tr>
-            <td>
-              <input title="random seed" id="seed" value="2666" />
-              <button id="gen-seed">Generate</button>
-            </td>
-          </tr>
-          <tr><td><pre>VIEW</pre></td>
-          </tr>
-          <tr>
-            <td>
-              <button title="view left" id="left-menu-btn">
-                  <font id="SET_BTN.t" size="4px" class="closed">❮</font>
-              </button>
-                  <input title="increment step" id="INC_STEP" type="number" value="100" min="0" max="10000" step="20"/>
-                <button title="view right" id="right-menu-btn">
-                  <font id="SET_BTN.t" size="4px" class="closed">❯</font>
-                </button>
+    </div>
+    <div style="height:4px"></div>
+    <div id="MENU">
+      <table>
+        <tr>
+          <td>
+            <pre>SEED</pre>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input title="random seed" id="seed" value="2666" />
+            <button id="gen-seed">Generate</button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <pre>VIEW</pre>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <button title="view left" id="left-menu-btn">
+              <font id="SET_BTN.t" size="4px" class="closed">❮</font>
+            </button>
+            <input title="increment step" id="INC_STEP" type="number" value="100" min="0" max="10000" step="20" />
+            <button title="view right" id="right-menu-btn">
+              <font id="SET_BTN.t" size="4px" class="closed">❯</font>
+            </button>
           </td>
         </tr>
 
         <tr>
-          <td><pre><input id = "AUTO_SCROLL" type="checkbox" value="1">Auto-scroll</pre></td>
+          <td>
+            <pre><input id = "AUTO_SCROLL" type="checkbox" value="1">Auto-scroll</pre>
+          </td>
           <td></td>
         </tr>
 
         <tr>
-          <td><pre><button id="dwnld-btn">SAVE</button></pre></td>
+          <td>
+            <pre><button id="dwnld-btn">SAVE</button></pre>
+          </td>
         </tr>
       </table>
     </div>
   </div>
 
-    <canvas style="display:none" id="bg-canvas"></canvas>
+  <canvas style="display:none" id="bg-canvas"></canvas>
 
   <table style="border-bottom: 1px solid rgba(0,0,0,0.1);">
     <tr>
       <td class="side-panel">
         <div id="L" class="side-button">
-          <div id="L.t"><font size="6px">&#x3008;</font></div>
+          <div id="L.t">
+            <font size="6px">&#x3008;</font>
+          </div>
         </div>
       </td>
 
@@ -159,10 +190,13 @@
 
       <td class="side-panel">
         <div id="R" class="side-button">
-          <div id="R.t"><font size="6px">&#x3009;</font></div>
+          <div id="R.t">
+            <font size="6px">&#x3009;</font>
+          </div>
         </div>
       </td>
     </tr>
   </table>
 </body>
+
 </html>
