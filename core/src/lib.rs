@@ -17,8 +17,6 @@ enum Tag {
     DistMount,
     FlatMount,
     Boat,
-    // RedCircle,
-    // GreenCircle,
 }
 
 #[derive(Debug)]
@@ -396,7 +394,7 @@ impl Painting {
 
     pub fn draw_man(&mut self) -> String {
         let resolution = 512.;
-        let seed = (2.) * self.noise.rand();
+        // let seed = (2.) * self.noise.rand();
         let args = ManArgs::default(&mut self.noise);
         Painting::svg_template(
             resolution,

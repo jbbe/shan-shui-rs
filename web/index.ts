@@ -205,12 +205,13 @@ rust.then((m) => {
     document.body.scrollTo(0, 0);
     console.log(["SCROLLX", window.scrollX]);
     console.time('preload');
-    m.preload(painting, 0, 800);
+    m.preload(painting, 0, 600);
     console.timeEnd('preload');
     console.time('render');
-    setSVG(m.render(painting, 0, 800));
+    setSVG(m.render(painting, 0, 600));
+    document.getElementById('loading-icon').className = 'loaded';
     autoxcroll(parseFloat(stepIncrEl.value));
-    requestAnimationFrame(() => m.preload(painting, 800, 3000));
+    requestAnimationFrame(() => m.preload(painting, 600, 3000));
     console.timeEnd('render');
     present();
 

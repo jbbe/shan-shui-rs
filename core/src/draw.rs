@@ -72,26 +72,26 @@ pub fn bezmh(p_in: Vec<Point>, w_in: Option<f64>) -> Vec<Point>{
         Some(w) => w,
         None =>  1. 
     }; 
-    let P = if p_in.len() == 2 {
+    let big_p = if p_in.len() == 2 {
       vec![p_in[0], mid_pt(&vec![p_in[0], p_in[1]]), p_in[1]]
     } else {
         p_in
     };
     let mut plist = vec![];
-    for j in 0..(P.len() - 2) {
+    for j in 0..(big_p.len() - 2) {
       let p0= if j == 0 {
-        P[j]
+        big_p[j]
       } else {
-        mid_pt(&vec![P[j], P[j + 1]])
+        mid_pt(&vec![big_p[j], big_p[j + 1]])
       };
-      let p1 = P[j + 1];
-      let p2 = if j == P.len() - 3 {
-        P[j + 2]
+      let p1 = big_p[j + 1];
+      let p2 = if j == big_p.len() - 3 {
+        big_p[j + 2]
       } else {
-        mid_pt(&vec![P[j + 1], P[j + 2]])
+        mid_pt(&vec![big_p[j + 1], big_p[j + 2]])
       };
       let pl = 20;
-      for  i in 0..(pl + (if j == P.len() - 3 { 1 } else { 0 })) {
+      for  i in 0..(pl + (if j == big_p.len() - 3 { 1 } else { 0 })) {
         let t = i as f64 / pl as f64;
         let u = (1. - t).powi(2) + 2. * t * (1. - t) * w + t * t;
         plist.push(Point {

@@ -311,7 +311,7 @@ fn expand(noise: &mut Noise, ptlist: Vec<Point>, wfun: fn(f64, f64) -> f64, sca:
     let mut vtxlist0 = vec![Point {x: 0., y: 0.}];
     let mut vtxlist1 = vec![Point {x: 0., y: 0.}];
     //   let mut vtxlist = vec![];
-    let n0 = noise.rand() * 10.;
+    // let n0 = noise.rand() * 10.;
     for i in 1..(ptlist.len() - 1) {
         let w = wfun(i as f64 / ptlist.len() as f64, sca);
         let a1 = f64::atan2(

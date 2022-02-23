@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use super::super::*;
 
 pub struct BoatArgs {
@@ -28,5 +29,32 @@ pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> Stri
             ..ManArgs::default(noise)
     };
     g.add(Man::man(noise,x_off + 20. * (args.scale) * dir, y_off, man_args));
+
+    let mut p_list1 = vec![];
+    let mut p_list2 = vec![];
+    let fun1 = |x: f64| -> f64 {
+        (x * PI).sin().powf(0.5) * 7. * args.scale
+    };
+    let fun2 = |x: f64| {
+        (x * PI).sin().powf(0.5) * 10. * args.scale
+    };
+
+    let i = 0.;
+    while( i < args.len * args.scale) {
+        p_list1.push(Point { x: i * dir, y: fun1(i / args.len)});
+        p_list2.push(Point { x: i * dir, y: fun2(i / args.len)});
+    }
+    p_list2.reverse();
+    p_list1.append(&mut p_list2);
+    g.add(poly(&p_list1, PolyArgs{ x_off, y_off, fil: white(), ..PolyArgs::default(Some("boat".to_string()))}));
+
+    g.add(stroke(noise, 
+        &p_list1.iter().map(|v|  Point { x: x_off + v.x, y: y_off + v.y}).collect(),
+        StrokeArgs {
+            width: 1.,
+            fun: |x| { (x * PI * 2.).sin()},
+            col: color_a(100, 100, 100, 0.4),
+            ..StrokeArgs::default("boat".to_string())
+        }));
     g.to_string()
 }
