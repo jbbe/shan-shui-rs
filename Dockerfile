@@ -2,6 +2,7 @@
 # multi-stage build feature. This also leverages the docker build cache to avoid
 # re-downloading dependencies if they have not changed.
 FROM rust:1.57.0 AS build
+ARG PORT=80
 WORKDIR /app
 COPY core /app/core
 COPY server /app/server
@@ -28,6 +29,6 @@ FROM scratch
 COPY --from=build /usr/local/cargo/bin/shan-shui-server .
 USER 1000
 
-EXPOSE 80
-CMD ["./shan-shui-server", "80"]
+EXPOSE PORT
+CMD ["./shan-shui-server", PORT]
 # CMD ["./server/target/release/shan-shui-server"]

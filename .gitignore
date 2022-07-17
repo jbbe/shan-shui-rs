@@ -3,3 +3,4 @@ perf.data*
 linecounter*
 /target
 out/*
+.vscode/settings.json
