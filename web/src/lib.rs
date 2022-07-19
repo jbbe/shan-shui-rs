@@ -32,8 +32,10 @@ pub fn update(p: *mut Painting, x_min: f64, x_max: f64) -> String {
 
 #[wasm_bindgen]
 pub fn preload(p: *mut Painting, x_min: f64, x_max: f64) {
+    log("rust::preload!!!");
     let painting = unsafe { &mut *p };
     painting.preload(x_min, x_max);
+    log("rust::preload complete");
 }
 
 #[wasm_bindgen]
@@ -50,23 +52,7 @@ pub fn dispose(_p: *mut Painting) {
 #[wasm_bindgen]
 pub fn draw_background(seed: f64) -> String {
     console_error_panic_hook::set_once();
-    let document = window().unwrap().document().unwrap();
-    let canvas = document
-        .get_element_by_id("bg-canvas")
-        .unwrap()
-        .dyn_into::<HtmlCanvasElement>()
-        .map_err(|_| ())
-        .unwrap();
-    log("rust::draw_background canvas grabbed");
-    let ctx = canvas
-        .get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
     let mut noise = shan_shui::Noise::new(seed);
-    // let perlins = noise.perlins();
-    // log(&format!("Perlins {:?}", perlins).to_string());
     let resolution = 512.;
     let indexes = ((resolution / 2.) + 1.) as usize;
     let matrix: Vec<Vec<String>> = (0..indexes)
@@ -84,6 +70,23 @@ pub fn draw_background(seed: f64) -> String {
                 .collect()
         })
         .collect();
+
+    log("rust::draw_background matrix generated");
+
+    let document = window().unwrap().document().unwrap();
+    let canvas = document
+        .get_element_by_id("bg-canvas")
+        .unwrap()
+        .dyn_into::<HtmlCanvasElement>()
+        .map_err(|_| ())
+        .unwrap();
+    log("rust::draw_background canvas grabbed");
+    let ctx = canvas
+        .get_context("2d")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<CanvasRenderingContext2d>()
+        .unwrap();
     for i in 0..indexes {
         for j in 0..indexes {
             ctx.set_fill_style(&JsValue::from_str(&matrix[i][j]));

@@ -13,17 +13,6 @@ function calcViewBox(cursX: number, windX: number, windY: number) {
     return "" + cursX + " 0 " + windX / zoom + " " + windY / zoom;
 }
 
-function viewupdate() {
-    try {
-        document
-            .getElementById("SVG")
-            .setAttribute("viewBox",
-                calcViewBox(MEM.cursx, CONFIG.windowWidth, CONFIG.windowHeight));
-    } catch (e) {
-        console.log("not possible");
-    }
-    //setTimeout(viewupdate,100)
-}
 
 function toggleVisible(id: string) {
     var v = document.getElementById(id).style.display == "none";
@@ -95,6 +84,7 @@ class PaintingApp {
     pendingUpdate: boolean = false;
 
     increment: number = 50;
+    preloadedMax = 0;
 
     constructor() {
         console.log("PaintingApp::Constructor")
@@ -176,37 +166,21 @@ class PaintingApp {
         try {
             this.painting = this.rustModule.init(this.seed);
 
-            const autoScrollEl = document.getElementById("AUTO_SCROLL") as HTMLInputElement;
-            autoScrollEl.checked = false;
-            autoScrollEl.onchange = () => this.autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
-            window.addEventListener("scroll", function (e) {
-                document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
-            });
-
-            const SET_BTN = document.getElementById('SET_BTN');
-            SET_BTN.onclick = () => {
-                toggleVisible("MENU");
-                toggleText('SET_BTN.t', '&#x2630;', '&#x2715;');
-            }
+            this.setupScroll();
 
 
             document.getElementById("dwnld-btn").onclick = download;
 
             MEM.lasttick = new Date().getTime();
-            document
-                .getElementById("BG")
-                .setAttribute("style", "width:" + CONFIG.windowWidth + "px");
+            document.getElementById("BG").style.width = CONFIG.windowWidth + "px";
             document.body.scrollTo(0, 0);
+
             document.getElementById('loading-icon').className = 'loaded';
-            console.time('preload');
-            let x_min = 0, x_max = 400;
-            this.rustModule.preload(this.painting, x_min, x_max);
-            console.timeEnd('preload');
-            console.time('render');
-            setSVG(this.rustModule.render(this.painting, x_min, x_max));
+            this.preload(400);
+            this.render(400);
+
             document.getElementById('loading-icon').className = 'loaded';
-            this.autoxcroll(this.stepIncr);
-            console.timeEnd('render');
+            
             present();
 
         } catch (e) {
@@ -217,6 +191,29 @@ class PaintingApp {
     get stepIncr() {
         const stepIncrEl = document.getElementById('INC_STEP') as HTMLInputElement;
         return parseFloat(stepIncrEl.value);
+    }
+
+    setupScroll() {
+        const autoScrollEl = document.getElementById("AUTO_SCROLL") as HTMLInputElement;
+        autoScrollEl.checked = false;
+        autoScrollEl.onchange = () => this.autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
+        window.addEventListener("scroll", function (e) {
+            document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
+        });
+    }
+
+    preload(xMax: number) {
+        console.time('preload' + xMax);
+        this.preloadedMax = xMax;
+        this.rustModule.preload(this.painting, 0, this.preloadedMax);
+        console.timeEnd('preload' + xMax);
+    }
+
+    render(width: number) {
+        console.time('render');
+        setSVG(this.rustModule.render(this.painting, 0, width));
+        this.autoxcroll(this.stepIncr);
+        console.timeEnd('render');
     }
 
     addMoveListeners() {
@@ -249,6 +246,9 @@ class PaintingApp {
             return;
         }
         this.activeUpdate = true;
+        // if(MEM.cursx + CONFIG.windowWidth < this.preloadedMax) {
+        //     this.preload(MEM.cursx + CONFIG.windowWidth);
+        // }
         console.log("update!", MEM.cursx, MEM.cursx + CONFIG.windowWidth, MEM);
         // console.profile("update")
         console.time("update")
@@ -331,3 +331,8 @@ function download() {
 }
 
 const app = new PaintingApp();
+
+document.getElementById('SET_BTN').onclick = () => {
+    toggleVisible("MENU");
+    toggleText('SET_BTN.t', '&#x2630;', '&#x2715;');
+}
