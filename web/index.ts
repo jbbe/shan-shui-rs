@@ -7,13 +7,6 @@ function getSvgFromAPI(path: string) {
     return fetch(`http://localhost:6767${path ?? ""}/${seed}`);
 }
 
-var mouseX = 0;
-var mouseY = 0;
-function onMouseUpdate(e: MouseEvent) {
-    mouseX = e.pageX;
-    mouseY = e.pageY;
-}
-
 function calcViewBox(cursX: number, windX: number, windY: number) {
     var zoom = 1.142;
     // var zoom = 0.5 // 1.142;
@@ -48,8 +41,7 @@ function toggleText(id: string, a: string, b: string) {
     }
 }
 
-var lastScrollX = -1;
-var pFrame = -1;
+let lastScrollX = -1, pFrame = -1;
 function present() {
     var currScrollX = window.scrollX;
     var step = 0;
@@ -99,6 +91,11 @@ class PaintingApp {
     seed?: number;
     deferred?: () => void;
 
+    activeUpdate: boolean = false;
+    pendingUpdate: boolean = false;
+
+    increment: number = 50;
+
     constructor() {
         console.log("PaintingApp::Constructor")
         console.time('rust init');
@@ -137,7 +134,6 @@ class PaintingApp {
                         this.deferred = () => this.startPainting();
                     }
                 };
-                
             } else {
                 createButton.setAttribute("disabled", "disabled");
                 createButton.classList.add("disabled");
@@ -181,7 +177,7 @@ class PaintingApp {
             this.painting = this.rustModule.init(this.seed);
 
             const autoScrollEl = document.getElementById("AUTO_SCROLL") as HTMLInputElement;
-            autoScrollEl.checked = true;
+            autoScrollEl.checked = false;
             autoScrollEl.onchange = () => this.autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
             window.addEventListener("scroll", function (e) {
                 document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
@@ -193,20 +189,6 @@ class PaintingApp {
                 toggleText('SET_BTN.t', '&#x2630;', '&#x2715;');
             }
 
-            document.addEventListener("mousemove", onMouseUpdate, false);
-            document.addEventListener("mouseenter", onMouseUpdate, false);
-
-            const rPanel = document.getElementById("R");
-
-            rPanel.onclick = () => this.xcroll(500);
-
-            const lPanel = document.getElementById("L");
-
-            lPanel.onclick = () => this.xcroll(-500);
-            const stepIncrEl = document.getElementById('INC_STEP') as HTMLInputElement;
-
-            document.getElementById("left-menu-btn").onclick = () => this.xcroll(parseFloat(stepIncrEl.value));
-            document.getElementById("right-menu-btn").onclick = () => this.xcroll(parseFloat(stepIncrEl.value));
 
             document.getElementById("dwnld-btn").onclick = download;
 
@@ -223,14 +205,26 @@ class PaintingApp {
             console.time('render');
             setSVG(this.rustModule.render(this.painting, x_min, x_max));
             document.getElementById('loading-icon').className = 'loaded';
-            this.autoxcroll(parseFloat(stepIncrEl.value));
-            // requestAnimationFrame(() => this.rustModule.preload(this.painting, 600, 3000));
+            this.autoxcroll(this.stepIncr);
             console.timeEnd('render');
             present();
 
         } catch (e) {
             console.error("start didn't work", e);
         }
+    }
+
+    get stepIncr() {
+        const stepIncrEl = document.getElementById('INC_STEP') as HTMLInputElement;
+        return parseFloat(stepIncrEl.value);
+    }
+
+    addMoveListeners() {
+        const rPanel = document.getElementById("R");
+        rPanel.onclick = () => this.xcroll(this.stepIncr);
+
+        const lPanel = document.getElementById("L");
+        lPanel.onclick = () => this.xcroll(-this.stepIncr);
     }
 
     xcroll(v: number) {
@@ -248,13 +242,25 @@ class PaintingApp {
     }
 
     update() {
-        // return
+        // can queue up to 1 update fn
+        if(this.activeUpdate) {
+            console.log("Enqueueing update");
+            this.pendingUpdate = true;
+            return;
+        }
+        this.activeUpdate = true;
         console.log("update!", MEM.cursx, MEM.cursx + CONFIG.windowWidth, MEM);
         // console.profile("update")
         console.time("update")
         let svg = this.rustModule.update(this.painting, MEM.cursx, MEM.cursx + CONFIG.windowWidth);
         console.timeEnd("update")
         setSVG(svg);
+        this.activeUpdate = false; 
+        if(this.pendingUpdate) {
+            console.log("dequeuing update")
+            this.pendingUpdate = false;
+            requestAnimationFrame(() => this.update());
+        } 
         // console.profileEnd("update")
     }
 
@@ -281,6 +287,8 @@ class PaintingApp {
             this.autoScrollTimeout = setTimeout(() => {
                 this.autoxcroll(v);
             }, 1999);
+        } else {
+            this.autoScrollTimeout = undefined;
         }
     }
 }
