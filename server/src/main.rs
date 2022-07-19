@@ -26,8 +26,6 @@ fn main() {
     let mut server = Nickel::new();
     let args: Vec<String> = env::args().collect();
     let port = &args[1];
-    // let mut sessions = std::collections::HashMap::new();
-    // let shan_shui =
     server.utilize(nickel_cors::enable_cors);
     server.utilize(router! {
         get "/favicon" => |_req, mut res| {

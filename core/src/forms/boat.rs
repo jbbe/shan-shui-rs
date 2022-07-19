@@ -40,7 +40,7 @@ pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> Stri
     };
 
     let i = 0.;
-    while( i < args.len * args.scale) {
+    while i < args.len * args.scale {
         p_list1.push(Point { x: i * dir, y: fun1(i / args.len)});
         p_list2.push(Point { x: i * dir, y: fun2(i / args.len)});
     }
