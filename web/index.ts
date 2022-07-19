@@ -100,10 +100,13 @@ class PaintingApp {
     deferred?: () => void;
 
     constructor() {
-        console.log("init Painting App")
+        console.log("PaintingApp::Constructor")
+        console.time('rust init');
         rust.then((m) => {
+            console.timeEnd('rust init');
             console.log("Rust Initialized")
             this.rustModule = m;
+            this.drawBackground(Math.random())
             if (this.deferred) {
                 this.deferred();
                 this.deferred = undefined;
@@ -177,33 +180,12 @@ class PaintingApp {
         try {
             this.painting = this.rustModule.init(this.seed);
 
-
-
-            const generateBtn = document.getElementById('gen-seed')
-            generateBtn.onclick = () => this.changeSeed()
-
-            // @ts-ignore
-        
-            let autoScrollTimeout: NodeJS.Timeout;
-            const autoxcroll = (v: number) => {
-                if ((document.getElementById("AUTO_SCROLL") as HTMLInputElement).checked) {
-                    this.xcroll(v);
-                    if (autoScrollTimeout) {
-                        clearTimeout(autoScrollTimeout);
-                    }
-                    autoScrollTimeout = setTimeout(function () {
-                        autoxcroll(v);
-                    }, 1999);
-                }
-            }
             const autoScrollEl = document.getElementById("AUTO_SCROLL") as HTMLInputElement;
             autoScrollEl.checked = true;
-            autoScrollEl.onchange = () => autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
+            autoScrollEl.onchange = () => this.autoxcroll(parseFloat((document.getElementById('INC_STEP') as HTMLInputElement).value));
             window.addEventListener("scroll", function (e) {
                 document.getElementById("button-container").style.left = "" + Math.max(4, 40 - window.scrollX);
             });
-
-            requestAnimationFrame(() => this.drawBackground(Math.random()));
 
             const SET_BTN = document.getElementById('SET_BTN');
             SET_BTN.onclick = () => {
@@ -216,11 +198,11 @@ class PaintingApp {
 
             const rPanel = document.getElementById("R");
 
-            rPanel.onclick = () => this.xcroll(1000);
+            rPanel.onclick = () => this.xcroll(500);
 
             const lPanel = document.getElementById("L");
 
-            lPanel.onclick = () => this.xcroll(-1000);
+            lPanel.onclick = () => this.xcroll(-500);
             const stepIncrEl = document.getElementById('INC_STEP') as HTMLInputElement;
 
             document.getElementById("left-menu-btn").onclick = () => this.xcroll(parseFloat(stepIncrEl.value));
@@ -233,15 +215,16 @@ class PaintingApp {
                 .getElementById("BG")
                 .setAttribute("style", "width:" + CONFIG.windowWidth + "px");
             document.body.scrollTo(0, 0);
-            console.log(["SCROLLX", window.scrollX]);
+            document.getElementById('loading-icon').className = 'loaded';
             console.time('preload');
-            this.rustModule.preload(this.painting, 0, 600);
+            let x_min = 0, x_max = 400;
+            this.rustModule.preload(this.painting, x_min, x_max);
             console.timeEnd('preload');
             console.time('render');
-            setSVG(this.rustModule.render(this.painting, 0, 600));
+            setSVG(this.rustModule.render(this.painting, x_min, x_max));
             document.getElementById('loading-icon').className = 'loaded';
-            autoxcroll(parseFloat(stepIncrEl.value));
-            requestAnimationFrame(() => this.rustModule.preload(this.painting, 600, 3000));
+            this.autoxcroll(parseFloat(stepIncrEl.value));
+            // requestAnimationFrame(() => this.rustModule.preload(this.painting, 600, 3000));
             console.timeEnd('render');
             present();
 
@@ -281,8 +264,24 @@ class PaintingApp {
         console.time("drawbkgrnd");
         let img = this.rustModule.draw_background(seed);
         console.timeEnd("drawbkgrnd")
+
+        console.time("set background");
         document.getElementsByTagName("body")[0].style.backgroundImage =
             "url(" + img + ")";
+        console.timeEnd("set background");
+    }
+
+    autoScrollTimeout: NodeJS.Timeout;
+    autoxcroll(v: number) {
+        if ((document.getElementById("AUTO_SCROLL") as HTMLInputElement).checked) {
+            this.xcroll(v);
+            if (this.autoScrollTimeout) {
+                clearTimeout(this.autoScrollTimeout);
+            }
+            this.autoScrollTimeout = setTimeout(() => {
+                this.autoxcroll(v);
+            }, 1999);
+        }
     }
 }
 

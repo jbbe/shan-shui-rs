@@ -23,10 +23,12 @@ pub fn init(seed: i32) -> *mut Painting {
 #[wasm_bindgen]
 pub fn update(p: *mut Painting, x_min: f64, x_max: f64) -> String {
     console_error_panic_hook::set_once();
-    log("update!!!");
+    log("rust::update!!!");
     let x_face = unsafe { &mut *p };
-    log("Unboxed!!");
-    x_face.update(x_min, x_max)
+    log("rust::Unboxed!!");
+    let ret = x_face.update(x_min, x_max);
+    log("rust::update complete");
+    ret
 }
 
 #[wasm_bindgen]
@@ -58,7 +60,7 @@ pub fn draw_background(seed: f64) -> String {
         .dyn_into::<HtmlCanvasElement>()
         .map_err(|_| ())
         .unwrap();
-    log("canvas grabbed");
+    log("rust::draw_background canvas grabbed");
     let ctx = canvas
         .get_context("2d")
         .unwrap()
