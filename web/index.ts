@@ -217,11 +217,8 @@ class PaintingApp {
     }
 
     addMoveListeners() {
-        const rPanel = document.getElementById("R");
-        rPanel.onclick = () => this.xcroll(this.stepIncr);
-
-        const lPanel = document.getElementById("L");
-        lPanel.onclick = () => this.xcroll(-this.stepIncr);
+        document.getElementById("R").onclick = () => this.xcroll(this.stepIncr);
+        document.getElementById("L").onclick = () => this.xcroll(-this.stepIncr);
     }
 
     xcroll(v: number) {
