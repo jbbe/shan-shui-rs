@@ -96,7 +96,7 @@ pub fn mountain(
                 ft_layers.push(ft_layer2);
             }
         }
-        let mut g = Group::new("foot".to_string());
+        let mut g = Group::new("ft".to_string());
         // let colors_poly = ["pink", "red", "yellow"];
         // let colors_stroke = ["chartreuse", "chocolate", "orange"];
         for layer in ft_layers.iter() {
@@ -109,7 +109,7 @@ pub fn mountain(
                     // fil: colors_poly[i % 3].to_string(),
                     fil: white(),
                     stroke: "none".to_string(),
-                    ..PolyArgs::default(Some("ft-poly".to_string()))
+                    ..PolyArgs::default(Some("ft-py".to_string()))
                 },
             ));
 
@@ -211,7 +211,7 @@ pub fn mountain(
                 }).collect()
         }).collect();
 
-    let mut group = Group::new("mnt".to_string());
+    let mut group = Group::new("mt".to_string());
     // Rim
     group.add(vegetate(
         noise,
@@ -260,7 +260,7 @@ pub fn mountain(
             fil: "white".to_string(),
             stroke: "none".to_string(),
             width: 0.,
-            name: Some("wht bg".to_string()),
+            name: Some("wtbg".to_string()),
         },
     ));
 
@@ -275,7 +275,7 @@ pub fn mountain(
             // col: "aqua".to_string(),
             noi: 1.,
             width: 3.,
-            ..StrokeArgs::default("outln-str".to_string())
+            ..StrokeArgs::default("oln-st".to_string())
         },
     ));
 

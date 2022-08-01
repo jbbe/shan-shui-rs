@@ -25,7 +25,12 @@ fn rand_seed() -> f64 {
 fn main() {
     let mut server = Nickel::new();
     let args: Vec<String> = env::args().collect();
-    let port = &args[1];
+    
+    let port = if args.len() < 2 {
+        "6767"
+    } else { 
+        &args[1] 
+    };
     server.utilize(nickel_cors::enable_cors);
     server.utilize(router! {
         get "/favicon" => |_req, mut res| {
@@ -46,6 +51,14 @@ fn main() {
             let mut painting = shan_shui::Painting::new(seed);
             println!("route boat");
             painting.draw_boat()
+        }
+        get "/transmissiontower" => |_req, mut res| {
+            res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
+            res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
+            let seed = rand_seed();
+            let mut painting = shan_shui::Painting::new(seed);
+            println!("route transmission tower");
+            painting.draw_transmission_tower()
         }
         get "/man" => |_req, mut res| {
             res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);

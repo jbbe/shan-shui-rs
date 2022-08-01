@@ -278,8 +278,8 @@ pub fn tree04(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
              PI * 0.2
           );
 
-          brlists.0.split_off(1);
-          brlists.1.split_off(1); // should be equiv splic(0, 1)
+          brlists.0.truncate(1);
+          brlists.1.truncate(1); // should be equiv splic(0, 1)
           let foff = |v: &Point| {
             Point { x: v.x + tr_list[i].x, y: v.y + tr_list[i].y }
           };
@@ -328,7 +328,7 @@ pub fn tree04(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
         ..PolyArgs::default(Some("tr03".to_string()))
       }));
 
-      trmlist.split_off(1);
+      trmlist.truncate(1);
       trmlist.remove(trmlist.len()  - 1); // trim first and last
 
       let col = color_a(100,100,100, 0.4 + noise.rand() * 0.1);

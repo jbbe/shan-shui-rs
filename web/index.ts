@@ -167,8 +167,6 @@ class PaintingApp {
             this.painting = this.rustModule.init(this.seed);
 
             this.setupScroll();
-
-
             document.getElementById("dwnld-btn").onclick = download;
 
             MEM.lasttick = new Date().getTime();
