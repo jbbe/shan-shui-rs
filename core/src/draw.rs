@@ -318,12 +318,12 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> String {
 * reso should not be 0
 */
 pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
-    let tl = p_list.len() - 1 * (reso as usize);
-    // let mut lx = 0.;
-    // let mut ly = 0.;
     let mut r_list = VecDeque::new();
+    if p_list.is_empty() { 
+        return r_list;
+    }
     r_list.reserve(p_list.len());
-
+    let tl = p_list.len() - 1 * (reso as usize);
     for i in 0..tl {
         let last_i = f64::floor(i as f64 / reso) as usize;
         let next_i = f64::ceil(i as f64 / reso) as usize;

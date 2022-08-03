@@ -307,7 +307,7 @@ impl Man {
         p_list.iter().map(|p| Point { x: -p.x, y: p.y }).collect()
     }
 }
-fn expand(noise: &mut Noise, ptlist: Vec<Point>, wfun: fn(f64, f64) -> f64, sca: f64) -> (Vec<Point>, Vec<Point>) {
+fn expand(_noise: &mut Noise, ptlist: Vec<Point>, wfun: fn(f64, f64) -> f64, sca: f64) -> (Vec<Point>, Vec<Point>) {
     let mut vtxlist0 = vec![Point {x: 0., y: 0.}];
     let mut vtxlist1 = vec![Point {x: 0., y: 0.}];
     //   let mut vtxlist = vec![];

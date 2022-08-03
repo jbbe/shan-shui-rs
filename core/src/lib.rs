@@ -11,6 +11,12 @@ pub use forms::*;
 pub use noise::Noise;
 pub use point::*;
 
+// struct Palette {
+//     water: String,
+//     mount1: String,
+//     mount2: String,
+// }
+
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum Tag {
     Mount,
@@ -377,6 +383,16 @@ impl Painting {
             resolution,
             0.,
             boat01(&mut self.noise, 256., 256., BoatArgs::default()),
+        )
+    }
+    
+    pub fn draw_transmission_tower(&mut self) -> String {
+        let resolution = 512.;
+        Painting::svg_template(
+            resolution,
+            resolution,
+            0.,
+            transmission_tower(&mut self.noise, 256., 256., TowerArgs::default()),
         )
     }
 

@@ -15,3 +15,6 @@ pub use tree::*;
 
 pub mod water;
 pub use water::*;
+
+pub mod building;
+pub use building::*;
