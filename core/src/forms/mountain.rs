@@ -404,6 +404,20 @@ pub fn mountain(
     // top arch
 
     // transm
+    group.add(vegetate(
+        noise,
+        &layers,
+        x_off,
+        y_off,
+        seed,
+        h,
+        |noise, x, y,  x_off, y_off, _h| { transmission_tower(noise, x + x_off, y + y_off, TowerArgs::default())},
+        |noise, pt_list, i, j, seed, _h| {
+            let ns = noise.noise(i as f64 * 0.2, j as f64 * 0.5, seed + 20. * PI);
+            i % 2 == 0 && (j == 1 ||(pt_list.len() > 1 && j == pt_list[i].len() - 2)) && ns * ns * ns * ns  < 0.002
+        },
+        |_veg_list, _i| true,
+    ));
 
     // bott rock
     group.to_string()

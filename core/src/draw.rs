@@ -323,7 +323,7 @@ pub fn div(p_list: &VecDeque<Point>, reso: f64) -> VecDeque<Point> {
         return r_list;
     }
     r_list.reserve(p_list.len());
-    let tl = p_list.len() - 1 * (reso as usize);
+    let tl = (p_list.len() - 1) * (reso as usize);
     for i in 0..tl {
         let last_i = f64::floor(i as f64 / reso) as usize;
         let next_i = f64::ceil(i as f64 / reso) as usize;
