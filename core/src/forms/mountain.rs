@@ -823,6 +823,19 @@ pub fn flat_dec(noise: &mut Noise, x_off: f64, y_off: f64, gr_bound: Bound) -> S
     let ts = noise.rand_choice_arr(&[0, 0, 0, 0, 0, 1]);
     if ts == 1 && tt != 4 {
         // Add arch
+        let height =  noise.norm_rand(80., 100.);
+        let width = noise.norm_rand(160., 200.);
+        let per = noise.rand();
+        let _x_off = x_off + noise.norm_rand(gr_bound.x_min, gr_bound.x_max);
+        g.add(arch01(noise, 
+            _x_off,
+            y_off + (gr_bound.y_min + gr_bound.y_max) / 2. + 20., 
+            Arch01Args {
+                width,
+                height,
+                per,
+                ..Arch01Args::default()
+        }));
     }
     g.to_string()
 }

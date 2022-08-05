@@ -410,13 +410,23 @@ impl Painting {
 
     pub fn draw_man(&mut self) -> String {
         let resolution = 512.;
-        // let seed = (2.) * self.noise.rand();
         let args = ManArgs::default(&mut self.noise);
         Painting::svg_template(
             resolution,
             resolution,
             0.,
             Man::man(&mut self.noise, 10., 300., args),
+        )
+    }
+   
+    pub fn draw_arch01(&mut self) -> String {
+        let resolution = 512.;
+        let args = Arch01Args::default();
+        Painting::svg_template(
+            resolution,
+            resolution,
+            0.,
+            arch01(&mut self.noise, 10., 300., args),
         )
     }
 }

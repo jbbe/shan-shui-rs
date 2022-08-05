@@ -1,3 +1,6 @@
+pub mod arch;
+pub use arch::*;
+
 pub mod man;
 pub use man::*;
 

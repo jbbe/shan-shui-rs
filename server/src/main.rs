@@ -65,8 +65,16 @@ fn main() {
             res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
             let seed = rand_seed();
             let mut painting = shan_shui::Painting::new(seed);
-            println!("route boat");
+            println!("route man");
             painting.draw_man()
+        }
+        get "/arch" => |_req, mut res| {
+            res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
+            res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
+            let seed = rand_seed();
+            let mut painting = shan_shui::Painting::new(seed);
+            println!("route arch");
+            painting.draw_arch01()
         }
 
         get "/:seed" => |req, mut res| {
