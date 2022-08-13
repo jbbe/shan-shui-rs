@@ -202,18 +202,8 @@ impl Noise {
         self.wt_rand(|x| f64::powf(std::f64::consts::E, -24. * f64::powf(x - 0.5, 2.))) * 2. - 1.
     }
 
-    // fn rand_choice<T>(arr: Vec<T>) -> T {
-    //     let idx = f64::floor(arr.len() as f64 * _rand()) as usize;
-    //     arr[idx]
-    // }
-    pub fn rand_choice_arr(&mut self, arr: &[usize]) -> usize {
-        let r = self.rand();
-        let idx = f64::floor(arr.len() as f64 * r) as usize;
-        arr[idx]
-    }
-    pub fn rand_choice_arrf(&mut self, arr: &[f64]) -> f64 {
-        let r = self.rand();
-        let idx = f64::floor(arr.len() as f64 * r) as usize;
+    pub fn rand_choice_arr<T: Copy>(&mut self, arr: &[T]) -> T {
+        let idx = f64::floor(arr.len() as f64 * self.rand()) as usize;
         arr[idx]
     }
 }

@@ -187,7 +187,7 @@ impl State {
             flat_mount(noise, p.x, p.y, args)
         } else if p.tag == Tag::DistMount {
             let seed = noise.rand();
-            let len = noise.rand_choice_arrf(&[500., 100., 1500.]);
+            let len = noise.rand_choice_arr(&[500., 100., 1500.]);
             dist_mount(noise,p.x, p.y, seed,DistMountArgs { 
                 height: 150., len, ..DistMountArgs::default() 
             })

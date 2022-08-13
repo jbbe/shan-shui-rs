@@ -1,9 +1,9 @@
-use std::f64::consts::PI;
 use super::super::Noise;
 use super::super::*;
+use std::f64::consts::PI;
 // {distance, Noise, Point};
 
-const PI_4 : f64= PI / 4.; 
+const PI_4: f64 = PI / 4.;
 pub struct Man {}
 // #[allow(dead_code)]
 pub struct ManArgs {
@@ -52,7 +52,7 @@ struct Sct {
 }
 impl Sct {
     pub fn keys(&self) -> Vec<usize> {
-        self.obj.iter().map(|e| { e.0 }).collect()
+        self.obj.iter().map(|e| e.0).collect()
     }
 
     pub fn get(&self, i: usize) -> Option<Sct> {
@@ -62,8 +62,8 @@ impl Sct {
                 let s = t.1;
                 return match s {
                     Some(sct) => Some(sct),
-                    None => None
-                }
+                    None => None,
+                };
                 // if el.1.is_none() {
                 //     return None;
                 // } else {
@@ -80,17 +80,40 @@ impl Sct {
     }
 
     pub fn new() -> Self {
-        let five = (5, Some(Sct {obj: vec![(6, None)]}));
-        let seven = (7, Some(Sct {obj: vec![(8, None)]}));
-        let one = (1, Some(Sct {obj: vec![(2, None), five, seven,]}));
-        
-        // let four = (4, None);
-        let three = (3, Some(Sct { obj: vec![(4, None)] }));
+        let five = (
+            5,
+            Some(Sct {
+                obj: vec![(6, None)],
+            }),
+        );
+        let seven = (
+            7,
+            Some(Sct {
+                obj: vec![(8, None)],
+            }),
+        );
+        let one = (
+            1,
+            Some(Sct {
+                obj: vec![(2, None), five, seven],
+            }),
+        );
 
-        let zero = (0, Some(Sct { obj: vec![one, three] }));
-        Self { 
-            obj: vec![zero],
-        }
+        // let four = (4, None);
+        let three = (
+            3,
+            Some(Sct {
+                obj: vec![(4, None)],
+            }),
+        );
+
+        let zero = (
+            0,
+            Some(Sct {
+                obj: vec![one, three],
+            }),
+        );
+        Self { obj: vec![zero] }
     }
 }
 
@@ -101,7 +124,7 @@ impl Man {
         let hat = args.hat;
         let ite = args.ite;
         let ang = args.angle;
-        let len: Vec<f64> = args.len.iter().map(|v| { v * sca }).collect();
+        let len: Vec<f64> = args.len.iter().map(|v| v * sca).collect();
         let mut g = Group::new("man".to_string());
         let mut y_off = _y_off;
         let sct = Sct::new();
@@ -110,21 +133,20 @@ impl Man {
             // so sct is a nested object, of object with the keys being ints
             let keys = sct.keys();
             for i in 0..(keys.len()) {
-            if keys[i] == ind {
-                return Some(vec![ind]);
-            } else {
-                let sub_sct = &sct.get(keys[i]);
-                if sub_sct.is_some() {
-                    let sct = sub_sct.clone().unwrap();
-                    let r = gpar(&sct, ind);
-                    if r.is_some() {
-                        let mut res = vec![keys[i]];
-                        res.append(&mut r.unwrap());
-                        return Some(res);
+                if keys[i] == ind {
+                    return Some(vec![ind]);
+                } else {
+                    let sub_sct = &sct.get(keys[i]);
+                    if sub_sct.is_some() {
+                        let sct = sub_sct.clone().unwrap();
+                        let r = gpar(&sct, ind);
+                        if r.is_some() {
+                            let mut res = vec![keys[i]];
+                            res.append(&mut r.unwrap());
+                            return Some(res);
+                        }
                     }
-
                 }
-            }
             }
             None
         }
@@ -154,67 +176,70 @@ impl Man {
             pos
         };
 
-        let pts: Vec<Point> = (0..ang.len()).map(|i| { global_pos(&sct, i) }).collect();
-    //   for (var i = 0; i < ang.length; Vi++) {
-    //     pts.push(global_pos(sct, i));
-    //   }
-    y_off -= pts[4].y;
+        let pts: Vec<Point> = (0..ang.len()).map(|i| global_pos(&sct, i)).collect();
+        //   for (var i = 0; i < ang.len(); Vi++) {
+        //     pts.push(global_pos(sct, i));
+        //   }
+        y_off -= pts[4].y;
 
-    let to_global = |v: &Point| {
-        Point{ x: if fli { -1. }else { 1. } * v.x + x_off, y: v.y + y_off }
-    };
+        let to_global = |v: &Point| Point {
+            x: if fli { -1. } else { 1. } * v.x + x_off,
+            y: v.y + y_off,
+        };
 
-      // canv stuff is commented in the orig
-    // for i in 1..(pts.len()) {
-    //     let par = gpar(sct, i);
-    //     let p0 = global_pos(sct, par[par.length - 2]);
-    //     let s = div([p0, pts[i]], 10);
-    //     //canv += stroke(s.map(toGlobal))
-    // }
+        // canv stuff is commented in the orig
+        // for i in 1..(pts.len()) {
+        //     let par = gpar(sct, i);
+        //     let p0 = global_pos(sct, par[par.len() - 2]);
+        //     let s = div([p0, pts[i]], 10);
+        //     //canv += stroke(s.map(toGlobal))
+        // }
 
-    let cloth = |noise: &mut Noise, plist, fun: fn(f64, f64) -> f64| -> String {
-    // let cloth = |(plist: Vec<Point>, fun: FnMut(f64)| -> String 
-    // where F: FnMut(f64 )
-    // {
-        let mut g = Group::new("cloth".to_string());
-        let tlist = bezmh(plist, Some(2.));
-        let (tlist1, tlist2) = expand(noise, tlist, fun, sca);
-        let mut poly1_pt_list = tlist1.clone();
-        let mut tmp = tlist2.clone();
-        tmp.reverse();
-        poly1_pt_list.append(&mut tmp);
-        g.add(poly(&poly1_pt_list.iter().map(to_global).collect(), PolyArgs{
-          fil: white(), 
-          ..PolyArgs::default(Some("m1".to_string()))
-        }));
-        g.add(stroke(noise, &tlist1.iter().map(to_global).collect(), StrokeArgs{
-          width: 1.,
-          col: color_a(100,100,100,0.5),
-          ..StrokeArgs::default("m1".to_string())
-        }));
-        g.add(stroke(noise, &tlist2.iter().map(to_global).collect(), StrokeArgs {
-          width: 1.,
-          col: color_a(100,100,100,0.6),
-          ..StrokeArgs::default("m1".to_string())
-        }));
-        g.to_string()
-    };
+        let cloth = |noise: &mut Noise, plist, fun: fn(f64, f64) -> f64| -> String {
+            // let cloth = |(plist: Vec<Point>, fun: FnMut(f64)| -> String
+            // where F: FnMut(f64 )
+            // {
+            let mut g = Group::new("cloth".to_string());
+            let tlist = bezmh(plist, Some(2.));
+            let (tlist1, tlist2) = expand(noise, tlist, fun, sca);
+            let mut poly1_pt_list = tlist1.clone();
+            let mut tmp = tlist2.clone();
+            tmp.reverse();
+            poly1_pt_list.append(&mut tmp);
+            g.add(poly(
+                &poly1_pt_list.iter().map(to_global).collect(),
+                PolyArgs {
+                    fil: white(),
+                    ..PolyArgs::default(Some("m1".to_string()))
+                },
+            ));
+            g.add(stroke(
+                noise,
+                &tlist1.iter().map(to_global).collect(),
+                StrokeArgs {
+                    width: 1.,
+                    col: color_a(100, 100, 100, 0.5),
+                    ..StrokeArgs::default("m1".to_string())
+                },
+            ));
+            g.add(stroke(
+                noise,
+                &tlist2.iter().map(to_global).collect(),
+                StrokeArgs {
+                    width: 1.,
+                    col: color_a(100, 100, 100, 0.6),
+                    ..StrokeArgs::default("m1".to_string())
+                },
+            ));
+            g.to_string()
+        };
 
         let fsleeve = |x: f64, sca| -> f64 {
-          sca *
-          8. *
-          ((0.5 * x * PI).sin() * (x * PI).sin().powf(0.1) +
-            (1. - x) * 0.4)
+            sca * 8. * ((0.5 * x * PI).sin() * (x * PI).sin().powf(0.1) + (1. - x) * 0.4)
         };
-        let fbody : fn(f64, f64) -> f64 = |x, sca| {
-          sca *
-          11. *
-          ((0.5 * x * PI).sin() * (x * PI).sin().powf(0.1) +
-            (1. - x) * 0.5)
-        };
-        let fhead: fn(f64, f64) -> f64 = |x, sca| {
-            sca * 7. * (0.25 - (x - 0.5).powi(2)).powf(0.3)
-        };
+        let fbody: fn(f64, f64) -> f64 =
+            |x, sca| sca * 11. * ((0.5 * x * PI).sin() * (x * PI).sin().powf(0.1) + (1. - x) * 0.5);
+        let fhead: fn(f64, f64) -> f64 = |x, sca| sca * 7. * (0.25 - (x - 0.5).powi(2)).powf(0.3);
 
         g.add(ite(noise, to_global(&pts[8]), to_global(&pts[6])));
 
@@ -230,11 +255,15 @@ impl Man {
         let mut concated_pts = hlist1.clone();
         hlist2.reverse();
         concated_pts.append(&mut hlist2);
-        g.add(poly(&concated_pts.iter().map(to_global).collect(), PolyArgs {
-            fil: color_a(100,100,100,0.6), ..PolyArgs::default(Some("mans".to_string()))
-        }));
+        g.add(poly(
+            &concated_pts.iter().map(to_global).collect(),
+            PolyArgs {
+                fil: color_a(100, 100, 100, 0.6),
+                ..PolyArgs::default(Some("mans".to_string()))
+            },
+        ));
 
-        g.add(hat(to_global(&pts[1]), to_global(&pts[2]),  fli ));
+        g.add(hat(to_global(&pts[1]), to_global(&pts[2]), fli));
 
         g.to_string()
     }
@@ -275,13 +304,13 @@ impl Man {
         ]);
         let pts = Man::tran_poly(p0, p1, &arr);
 
-        poly(&pts,
+        poly(
+            &pts,
             PolyArgs {
                 fil: color_a(100, 100, 100, 0.8),
                 stroke: color_a(100, 100, 100, 0.8),
                 ..PolyArgs::default(Some("man".to_string()))
-
-            }
+            },
         )
     }
 
@@ -307,58 +336,50 @@ impl Man {
         p_list.iter().map(|p| Point { x: -p.x, y: p.y }).collect()
     }
 }
-fn expand(_noise: &mut Noise, ptlist: Vec<Point>, wfun: fn(f64, f64) -> f64, sca: f64) -> (Vec<Point>, Vec<Point>) {
-    let mut vtxlist0 = vec![Point {x: 0., y: 0.}];
-    let mut vtxlist1 = vec![Point {x: 0., y: 0.}];
+fn expand(
+    _noise: &mut Noise,
+    ptlist: Vec<Point>,
+    wfun: fn(f64, f64) -> f64,
+    sca: f64,
+) -> (Vec<Point>, Vec<Point>) {
+    let mut vtxlist0 = vec![Point { x: 0., y: 0. }];
+    let mut vtxlist1 = vec![Point { x: 0., y: 0. }];
     //   let mut vtxlist = vec![];
     // let n0 = noise.rand() * 10.;
     for i in 1..(ptlist.len() - 1) {
         let w = wfun(i as f64 / ptlist.len() as f64, sca);
-        let a1 = f64::atan2(
-          ptlist[i].y - ptlist[i - 1].y,
-          ptlist[i].x - ptlist[i - 1].x,
-        );
-        let a2 = f64::atan2(
-          ptlist[i].y - ptlist[i + 1].y,
-          ptlist[i].x - ptlist[i + 1].x,
-        );
+        let a1 = f64::atan2(ptlist[i].y - ptlist[i - 1].y, ptlist[i].x - ptlist[i - 1].x);
+        let a2 = f64::atan2(ptlist[i].y - ptlist[i + 1].y, ptlist[i].x - ptlist[i + 1].x);
         let mut a = (a1 + a2) / 2.;
         if a < a2 {
-          a += PI;
+            a += PI;
         }
         vtxlist0.push(Point {
-          x: ptlist[i].x + w * a.cos(),
-          y: ptlist[i].y + w * a.sin(),
+            x: ptlist[i].x + w * a.cos(),
+            y: ptlist[i].y + w * a.sin(),
         });
         vtxlist1.push(Point {
-          x: ptlist[i].x - w * a.cos(),
-          y:ptlist[i].y - w * a.sin(),
+            x: ptlist[i].x - w * a.cos(),
+            y: ptlist[i].y - w * a.sin(),
         });
-      }
-      let l = ptlist.len() - 1;
-      let a0 =
-        f64::atan2(ptlist[1].y - ptlist[0].y, ptlist[1].x - ptlist[0].x) -
-        PI / 2.;
-      let a1 =
-        f64::atan2(
-          ptlist[l].y - ptlist[l - 1].y,
-          ptlist[l].x - ptlist[l - 1].x,
-        ) -
-        PI / 2.;
-      let w0 = wfun(0., sca);
-      let w1 = wfun(1., sca);
+    }
+    let l = ptlist.len() - 1;
+    let a0 = f64::atan2(ptlist[1].y - ptlist[0].y, ptlist[1].x - ptlist[0].x) - PI / 2.;
+    let a1 = f64::atan2(ptlist[l].y - ptlist[l - 1].y, ptlist[l].x - ptlist[l - 1].x) - PI / 2.;
+    let w0 = wfun(0., sca);
+    let w1 = wfun(1., sca);
     vtxlist0[0] = Point {
         x: ptlist[0].x + w0 * a0.cos(),
         y: ptlist[0].y + w0 * a0.sin(),
-      };
+    };
     vtxlist1[0] = Point {
         x: ptlist[0].x - w0 * a0.cos(),
         y: ptlist[0].y - w0 * a0.sin(),
-      };
+    };
     vtxlist0.push(Point {
         x: ptlist[l].x + w1 * a1.cos(),
         y: ptlist[l].y + w1 * a1.sin(),
-      });
+    });
     vtxlist1.push(Point {
         x: ptlist[l].x - w1 * a1.cos(),
         y: ptlist[l].y - w1 * a1.sin(),

@@ -198,7 +198,7 @@ pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
                     f64::log(50. * x + 1., std::f64::consts::E) / 3.95
                 };
                 let ox = noise.rand() * args.width * shape((resof - i_f) / resof);
-                let r_choice = noise.rand_choice_arrf(&[-1., 1.]);
+                let r_choice = noise.rand_choice_arr(&[-1., 1.]);
                 let r1 = noise.rand() - 0.5 * args.width * 2.;
                 let width = noise.rand() * 6. -  3.;
                 let angle = (noise.rand() - 0.5) * PI / 6.;
@@ -405,7 +405,7 @@ fn branch(noise: &mut Noise, height: f64, width: f64, ang: f64, det: f64, ben: f
     let g = 3;
     for _ in 0..g {
         let r1 = noise.rand();
-        a0 += (ben / 2. + (r1 * ben)  / 2.) * noise.rand_choice_arrf(&[-1., 1.]);
+        a0 += (ben / 2. + (r1 * ben)  / 2.) * noise.rand_choice_arr(&[-1., 1.]);
         nx += (a0.cos() * height) / g as f64;
         ny += (a0.sin() * height) / g as f64;
         t_list.push(Point { x: nx, y: ny });
@@ -632,7 +632,7 @@ fn twig(noise: &mut Noise, tx: f64, ty: f64, dep: f64, args: TwigArgs) -> String
         let ny = f64::sin(a + a0) * d;
 
         twlist.push(Point { x: nx + tx, y: ny + ty });
-        let dir = args.dir * noise.rand_choice_arrf(&[-1., 1.]);
+        let dir = args.dir * noise.rand_choice_arr(&[-1., 1.]);
         if (i == ((tl / 3) | 0) || i == (((tl * 2) / 3) | 0)) && dep > 0. {
           g.add(twig(noise, nx + tx, ny + ty, dep - 1., TwigArgs {
             ang: args.ang,

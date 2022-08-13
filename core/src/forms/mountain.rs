@@ -283,7 +283,7 @@ pub fn mountain(
     group.add(foot(noise, &layers, x_off, y_off));
 
     // texture
-    let shading = noise.rand_choice_arrf(&[0., 0., 0., 0., 5.]);
+    let shading = noise.rand_choice_arr(&[0., 0., 0., 0., 5.]);
     group.add(texture(noise,
         &layers,
         TextureArgs {
