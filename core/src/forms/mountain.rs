@@ -109,7 +109,7 @@ pub fn mountain(
                     // fil: colors_poly[i % 3].to_string(),
                     fil: white(),
                     stroke: "none".to_string(),
-                    ..PolyArgs::default(Some("ft-py".to_string()))
+                    ..PolyArgs::default("ft-py".to_string())
                 },
             ));
 
@@ -260,7 +260,7 @@ pub fn mountain(
             fil: "white".to_string(),
             stroke: "none".to_string(),
             width: 0.,
-            name: Some("wtbg".to_string()),
+            name: "wtbg".to_string(),
         },
     ));
 
@@ -511,7 +511,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
             y_off,
             fil: "white".to_string(),
             stroke: "none".to_string(),
-            ..PolyArgs::default(Some("f_mnt bg".to_string()))
+            ..PolyArgs::default("f_mt bg".to_string())
         },
     ));
 
@@ -611,7 +611,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
             fil: "white".to_string(),
             stroke: "none".to_string(),
             width: 2.,
-            name: Some("sflt mnt553".to_string()),
+            name: "sflt mnt553".to_string(),
         },
     ));
     g.add(stroke(noise,
@@ -935,7 +935,7 @@ pub fn dist_mount(
                 fil: get_col(noise, p.x, p.y),
                 stroke: none_str(),
                 width: 1.,
-                ..PolyArgs::default(Some("dst mnt".to_string()))
+                ..PolyArgs::default("dst mnt".to_string())
             },
         ));
         //  let t = triangulate(&pt_list[i], TriangulateArgs { 

@@ -210,7 +210,7 @@ impl Man {
                 &poly1_pt_list.iter().map(to_global).collect(),
                 PolyArgs {
                     fil: white(),
-                    ..PolyArgs::default(Some("m1".to_string()))
+                    ..PolyArgs::default("m1".to_string())
                 },
             ));
             g.add(stroke(
@@ -259,7 +259,7 @@ impl Man {
             &concated_pts.iter().map(to_global).collect(),
             PolyArgs {
                 fil: color_a(100, 100, 100, 0.6),
-                ..PolyArgs::default(Some("mans".to_string()))
+                ..PolyArgs::default("mans".to_string())
             },
         ));
 
@@ -309,7 +309,7 @@ impl Man {
             PolyArgs {
                 fil: color_a(100, 100, 100, 0.8),
                 stroke: color_a(100, 100, 100, 0.8),
-                ..PolyArgs::default(Some("man".to_string()))
+                ..PolyArgs::default("man".to_string())
             },
         )
     }

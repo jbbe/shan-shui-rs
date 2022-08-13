@@ -118,7 +118,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
                 fil: "none".to_string(),
                 stroke: args.col.clone(),
                 width: 1.5,
-                ..PolyArgs::default(Some("tree01 p1".to_string()))
+                ..PolyArgs::default("tree01 p1".to_string())
             }
             // 0.,
             // 0.,
@@ -132,7 +132,7 @@ pub fn tree01(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
                 fil: "none".to_string(),
                 stroke: args.col,
                 width: 1.5,
-                ..PolyArgs::default(Some("tree01 p2".to_string()))
+                ..PolyArgs::default("tree01 p2".to_string())
             },
         ));
     g.to_string()
@@ -232,7 +232,7 @@ pub fn tree03(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
         fil: white(),
         stroke: args.col,
         width: 1.5,
-        ..PolyArgs::default(Some("tree03".to_string()))
+        ..PolyArgs::default("tree03".to_string())
     }));
     g.to_string()
 }
@@ -325,7 +325,7 @@ pub fn tree04(noise: &mut Noise, x: f64, y: f64, args: TreeArgs) -> String {
         fil: white(),
         stroke: args.col,
         width: 0.,
-        ..PolyArgs::default(Some("tr03".to_string()))
+        ..PolyArgs::default("tr3".to_string())
       }));
 
       trmlist.truncate(1);
@@ -378,7 +378,7 @@ pub fn tree08(noise: &mut Noise, x: f64, y: f64, args: TreeArgs ) -> String {
         fil: white(),
         stroke: args.col,
         width: 0.,
-        name: Some("tr08".to_string()),
+        name: "tr08".to_string(),
     }));
     let a = 0.6 + noise.rand() * 0.1;
     g.add(stroke(noise,

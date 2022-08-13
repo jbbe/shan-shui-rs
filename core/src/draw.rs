@@ -116,11 +116,11 @@ pub struct PolyArgs {
     pub fil: String,
     pub stroke: String,
     pub width: f64,
-    pub name: Option<String>
+    pub name: String
 }
 
 impl PolyArgs {
-    pub fn default(name: Option<String>) -> Self {
+    pub fn default(name: String) -> Self {
         Self {
             x_off: 0.,
             y_off: 0.,
@@ -138,12 +138,8 @@ pub fn poly(p_list: &Vec<Point>, args: PolyArgs) -> String {
         let y = p.y + args.y_off;
         format!("{:.1},{:.1}", x, y)
     }).collect();
-    let n = match args.name {
-        Some(s) => s,
-        None => "n".to_string(),
-    };
     format!("<polyline name='{}' points='{}' style='fill:{};stroke:{};stroke-width:{}' />",
-        n,
+        args.name,
         p_data.join(" "),
         args.fil,
         args.stroke,
@@ -243,7 +239,7 @@ pub fn stroke(noise: &mut Noise, pt_list: &Vec<Point>, args: StrokeArgs) -> Stri
             fil: args.col.clone().to_string(),
             stroke: args.col.clone().to_string(),
             width: args.out,
-            name: Some(args.name),
+            name: args.name,
         },
     )
 }
@@ -309,7 +305,7 @@ pub fn blob(noise: &mut Noise, x: f64, y: f64, args: BlobArgs) -> String {
             fil: args.col.clone(),
             stroke: args.col,
             width: 0.,
-            ..PolyArgs::default(Some("blob".to_string()))
+            ..PolyArgs::default("blb".to_string())
         }, // 0., 0., args.col.clone(), args.col, 0.
     )
 }

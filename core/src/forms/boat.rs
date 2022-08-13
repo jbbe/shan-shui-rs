@@ -50,7 +50,7 @@ pub fn boat01(noise: &mut Noise, x_off: f64, y_off: f64, args: BoatArgs) -> Stri
     }
     p_list2.reverse();
     p_list1.append(&mut p_list2);
-    g.add(poly(&p_list1, PolyArgs{ x_off, y_off, fil: white(), ..PolyArgs::default(Some("boat".to_string()))}));
+    g.add(poly(&p_list1, PolyArgs{ x_off, y_off, fil: white(), ..PolyArgs::default("boat".to_string())}));
 
     g.add(stroke(noise, 
         &p_list1.iter().map(|v|  Point { x: x_off + v.x, y: y_off + v.y}).collect(),

@@ -20,10 +20,9 @@ impl Arch01Args {
 
 pub fn arch01(noise: &mut Noise, x_off: f64, y_off: f64, args: Arch01Args) -> String {
     let mut g = draw::Group::new("b01".to_string());
-    let seed = 0;
 
     let p = 0.4 + noise.rand() * 0.2;
-    let h0 = args.height * p;
+    // let h0 = args.height * p;
     let h1 = args.height * (1. - p);
 
     //   group.add(hut(xoff, yoff - hei, { hei: h0, wid: wid }));
@@ -62,7 +61,7 @@ pub fn arch01(noise: &mut Noise, x_off: f64, y_off: f64, args: Arch01Args) -> St
     if mcnt == 1 {
         let fli = noise.rand_choice_arr(&[true, false]);
         let _x_off = x_off + noise.norm_rand(-args.width / 3., args.width / 3.);
-        let manArgs = ManArgs {
+        let man_args = ManArgs {
             fli,
             sca: 0.42,
             ..ManArgs::default(noise)
@@ -71,7 +70,7 @@ pub fn arch01(noise: &mut Noise, x_off: f64, y_off: f64, args: Arch01Args) -> St
             noise,
             _x_off,
             y_off,
-            manArgs,
+            man_args,
         ));
     } else if mcnt == 2 {
         let _x_off1 = x_off + noise.norm_rand(-args.width / 4., -args.width / 5.);
@@ -280,7 +279,7 @@ pub fn draw_box(_noise: &mut Noise, x_off: f64, y_off: f64, args: BoxArgs) -> St
                 y_off,
                 stroke: "none".to_string(),
                 fil: "white".to_string(),
-                ..PolyArgs::default(Some("bx".to_string()))
+                ..PolyArgs::default("bx".to_string())
             },
         ));
     }
@@ -497,7 +496,7 @@ fn rail(noise: &mut Noise, x_off: f64, y_off: f64, seed: f64, args: RailArgs) ->
                 col: color_a(100, 100, 100, 0.5),
                 noi: 0.5,
                 width: wei,
-                fun: |x| 1.,
+                fun: |_| 1.,
                 ..StrokeArgs::default("rs".to_string())
             },
         ));
