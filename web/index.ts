@@ -99,16 +99,21 @@ class PaintingApp {
                 this.deferred = undefined;
             }
         });
+        this.seed = Math.floor(new Date().getTime() * Math.random()  %  22424023);
         this.showMenu();
     }
 
     showMenu() {
-        const potentialSeeds = Array.from(Array(6).keys(), n => n + 1)
-            .map(i => Math.floor(i * new Date().getTime() * Math.random() % 22424023));
-        const seedContainer = document.getElementById("seed-container");
-        while (seedContainer.lastChild) {
-            seedContainer.removeChild(seedContainer.lastChild);
+        const seedSlider = document.getElementById("seed-range") as HTMLInputElement;
+        seedSlider.onchange = (e) => {
+            //@ts-ignore
+            document.getElementById('seed-value').innerText = e.target.value;
+            //@ts-ignore
+            this.seed = e.target.value
         }
+        seedSlider.value = "" + this.seed
+        document.getElementById('seed-value').innerText = "" + this.seed;
+
 
         const setCreateButtonActive = (active: boolean) => {
             const createButton = document.getElementById('create-button');
@@ -131,29 +136,7 @@ class PaintingApp {
             }
         }
 
-        setCreateButtonActive(false);
-        for (let seed of potentialSeeds) {
-            const button = document.createElement('button');
-            button.innerText = seed + "";
-            // @ts-ignore
-            button.value = seed;
-            button.onclick = (e) => {
-                const buttons = document.querySelectorAll('#seed-container button');
-                buttons.forEach(b => {
-                    // @ts-ignore
-                    if (b.value == e.currentTarget.value) {
-                        b.classList.add('selected');
-                    } else {
-                        b.classList.remove('selected');
-                    }
-                });
-                // @ts-ignore
-                this.seed = parseInt(e.currentTarget.value);
-                setCreateButtonActive(true);
-            };
-
-            seedContainer.append(button);
-        }
+        setCreateButtonActive(true);
     }
 
 
