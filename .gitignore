@@ -4,3 +4,5 @@ linecounter*
 /target
 out/*
 .vscode/settings.json
+
+paper/examples/epd
