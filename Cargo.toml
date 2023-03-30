@@ -2,6 +2,7 @@
 [workspace]
 members = [
     "core",
+    "paper",
     "server",
     "web",
 ]

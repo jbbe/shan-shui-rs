@@ -11,6 +11,12 @@ extern "C" {
     fn DEV_Module_Exit(input: i32) -> i32;
 }
 
+// pub struct TimeSpec
+
 pub fn dev_module_init() {
+
+}
+
+pub fn epd_7in5_v2_init() {
 
 }
