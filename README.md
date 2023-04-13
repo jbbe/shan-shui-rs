@@ -1,6 +1,5 @@
 # shan-shui-rs
 
-### IN PROGRESS
 Procedurally-generated vector-format Chinese landscape written in Rust.
 
 
