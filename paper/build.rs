@@ -38,9 +38,8 @@ fn main() {
         // bindings for.
         .header("wrapper.h")
         .clang_arg("-Ic/lib")
-
-    .clang_arg("-Ic/lib/Config")
-    .clang_arg("-Ic/lib/e-Paper")
+        .clang_arg("-Ic/lib/Config")
+        .clang_arg("-Ic/lib/e-Paper")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))

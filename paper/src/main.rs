@@ -106,5 +106,8 @@ fn test() -> i32 {
 }
 
 fn main() {
-    println!("Hello, world!");
+    println!("Begin Test...");
+    test();
+    println!("Success");
+    
 }
