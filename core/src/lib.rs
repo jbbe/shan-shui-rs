@@ -123,7 +123,7 @@ impl State {
             self.chunks.push_back(nch);
         } else if nch.y <= self.chunks[0].y {
             self.chunks.push_front(nch);
-        } else if nch.y >= self.chunks[(self.chunks.len() - 1)].y {
+        } else if nch.y >= self.chunks[self.chunks.len() - 1].y {
             self.chunks.push_back(nch);
         } else {
             for i in 0..(self.chunks.len() - 1) {

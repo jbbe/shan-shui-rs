@@ -475,7 +475,7 @@ pub fn flat_mount(noise: &mut Noise, x_off: f64, y_off: f64, args: FlatMountArgs
                     flat[flat_last].push(Point { x: nx, y: ny });
                 }
             } else {
-                if flat[(flat.len() - 1)].len() % 2 == 1 {
+                if flat[flat.len() - 1].len() % 2 == 1 {
                     // TODO 2125
                     // Don't think it would be possible to get into this tate?
                     let pt_last = pt_list.len() - 1;
