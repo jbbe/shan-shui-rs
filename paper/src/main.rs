@@ -1,7 +1,13 @@
 use shan_shui_paper::*;
-// #define UBYTE   uint8_t
+
+// use UBYTE as  u8;
 // #define UWORD   uint16_t
 // #define UDOUBLE uint32_t
+
+const EPD_7IN5_V2_WIDTH: u16 = 800;
+const EPD_7IN5_V2_HEIGHT: u16 = 480;
+const WHITE: u8 = 0xFF;
+const BLACK: u8 = 0x00;
 
 fn test() -> i32 {
     println!("EPD_7IN5_V2_test Demo\r\n");
@@ -21,6 +27,72 @@ fn test() -> i32 {
         println!("clearing");
         dev_delay_ms(500);
 
+        // let image_size: usize = ((EPD_7IN5_V2_WIDTH as usize + 7) / 8) * EPD_7IN5_V2_HEIGHT as usize;
+        // let mut black_image = vec![WHITE; image_size];
+
+        // println!("Paint_NewImage");
+        // Paint_NewImage(black_image.as_mut_ptr(), EPD_7IN5_V2_WIDTH, EPD_7IN5_V2_HEIGHT, 0, WHITE);
+
+        // Show BMP
+        // println!("show window BMP-----------------");
+        // Paint_SelectImage(black_image.as_mut_ptr());
+        // Paint_Clear(WHITE);
+        // let bmp_path1 = CString::new("./pic/800x480.bmp").unwrap();
+        // GUI_ReadBmp(bmp_path1.as_ptr(), 0, 0);
+        // EPD_7IN5_V2_Display(black_image.as_ptr());
+        // DEV_Delay_ms(2000);
+
+        // println!("show bmp------------------------");
+        // Paint_SelectImage(black_image.as_mut_ptr());
+        // Paint_Clear(WHITE);
+        // let bmp_path2 = CString::new("./pic/100x100.bmp").unwrap();
+        // GUI_ReadBmp(bmp_path2.as_ptr(), 0, 0);
+        // EPD_7IN5_V2_Display(black_image.as_ptr());
+        // DEV_Delay_ms(2000);
+
+        // // Show from array
+        // println!("show image for array");
+        // Paint_SelectImage(black_image.as_mut_ptr());
+        // Paint_Clear(WHITE);
+        // Paint_DrawBitMap(gImage_7in5_V2.as_ptr());
+        // EPD_7IN5_V2_Display(black_image.as_ptr());
+        // DEV_Delay_ms(2000);
+
+        // // Drawing
+        // println!("SelectImage:BlackImage");
+        // Paint_SelectImage(black_image.as_mut_ptr());
+        // Paint_Clear(WHITE);
+
+        // println!("Drawing:BlackImage");
+        // Paint_DrawPoint(10, 80, BLACK, 1, 0);  // adjust style
+        // ... other drawing functions ...
+
+        // let hello = CString::new("hello world").unwrap();
+        // let ws = CString::new("waveshare").unwrap();
+        // Paint_DrawString_EN(10, 0, ws.as_ptr(), &Font16, BLACK, WHITE);
+        // Paint_DrawString_EN(10, 20, hello.as_ptr(), &Font12, WHITE, BLACK);
+        // Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
+        // Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
+
+        // let cn1 = CString::new(" ���abc").unwrap();
+        // let cn2 = CString::new("΢ѩ����").unwrap();
+        // Paint_DrawString_CN(130, 0, cn1.as_ptr(), &Font12CN, BLACK, WHITE);
+        // Paint_DrawString_CN(130, 20, cn2.as_ptr(), &Font24CN, WHITE, BLACK);
+
+        // println!("EPD_Display");
+        // EPD_7IN5_V2_Display(black_image.as_ptr());
+        // DEV_Delay_ms(2000);
+
+        // println!("Clear...");
+        // EPD_7IN5_V2_Clear();
+
+        // println!("Goto Sleep...");
+        // EPD_7IN5_V2_Sleep();
+        // DEV_Delay_ms(2000);
+        // println!("close 5V, Module enters 0 power consumption ...");
+        // DEV_Module_Exit();
+
+        
     /*
         //Create a new image cache
         UBYTE *BlackImage;
@@ -33,7 +105,7 @@ fn test() -> i32 {
         printf("Paint_NewImage\r\n");
         Paint_NewImage(BlackImage, EPD_7IN5_V2_WIDTH, EPD_7IN5_V2_HEIGHT, 0, WHITE);
 
-    #if 1  // show bmp
+    // show bmp
         printf("show window BMP-----------------\r\n");
         Paint_SelectImage(BlackImage);
         Paint_Clear(WHITE);
@@ -47,7 +119,6 @@ fn test() -> i32 {
         GUI_ReadBmp("./pic/100x100.bmp", 0, 0);
         EPD_7IN5_V2_Display(BlackImage);
         DEV_Delay_ms(2000);
-    #endif
 
     #if 1   // show image for array
         printf("show image for array\r\n");

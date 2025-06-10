@@ -18,3 +18,16 @@ pub fn epd_7in5_v2_clear() -> () {
     unsafe { EPD_7IN5_V2_Clear() };
 }
 
+pub fn epd_7in5_v2_clear_black() -> () {
+    unsafe { EPD_7IN5_V2_ClearBlack() };
+}
+
+pub fn epd_7in5_v2_display(blackimage: *const u8)  {
+    unsafe { EPD_7IN5_V2_Display(blackimage); };
+}
+
+pub fn epd_7in5_v2_sleep() -> () {
+    unsafe { EPD_7IN5_V2_Sleep() };
+}
+
+

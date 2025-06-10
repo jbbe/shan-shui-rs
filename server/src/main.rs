@@ -77,6 +77,17 @@ fn main() {
             painting.draw_arch01()
         }
 
+        get "/color" => |req, mut res| {
+            res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
+            res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
+            let seed = parse_seed(req.param("seed").unwrap());
+
+            println!("Generating from seed {}", seed );
+
+            let mut painting = Painting::new(seed);
+            painting.full_svg(3000., 800.)
+        }
+
         get "/:seed" => |req, mut res| {
             res.headers_mut().set_raw("Access-Control-Allow-Origin", vec![b"*".to_vec()]);
             res.headers_mut().set_raw("Access-Control-Allow-Headers", vec![b"Origin X-Requested-With Content-Type Accept".to_vec()]);
