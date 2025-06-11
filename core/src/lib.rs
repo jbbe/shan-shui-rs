@@ -361,17 +361,13 @@ impl Painting {
         Self::svg_template(width, height, 0., self.chunk_render(0., width))
     }
 
-    pub fn svg_template(w: f64, h: f64, x: f64, svg: String) -> String {
+    pub fn svg_template(w: f64, h: f64, _x: f64, svg: String) -> String {
         vec![
             "<svg id='SVG' xmlns='http://www.w3.org/2000/svg' width='",
             &w.to_string()[..],
             "' height='",
             &h.to_string()[..],
-            "' style='mix-blend-mode:multiply;' viewBox ='",
-            &x.to_string()[..],
-            " ",
-            &(x + w).to_string()[..],
-            " ",
+            "' style='mix-blend-mode:multiply;' viewBox ='0 0 ",
             &w.to_string()[..],
             " ",
             &h.to_string()[..],
