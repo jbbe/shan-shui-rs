@@ -5,8 +5,6 @@ import cairosvg
 import random
 from PIL import Image
 
-
-
 def get_shan_shui_bmp():
     img_num = random.randint(0, 200)
     url = f"http://localhost:6767/boat/{img_num}"
@@ -26,11 +24,11 @@ def get_shan_shui_bmp():
         with Image.open(png_path) as img:
             img.save(bmp_path, format="BMP")
 
-        print("Conversion complete: input.png → output.bmp")
+        print(f"Conversion complete: {png_path} → {bmp_path}")
         return bmp_path
     else:
         print(f"Failed to download SVG. Status code: {response.status_code}")
 
 
-print("here")
 get_shan_shui_bmp()
+
