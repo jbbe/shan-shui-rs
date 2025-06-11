@@ -32,7 +32,7 @@ pub fn none_str() -> String {
 }
 
 pub fn color_a(r: u8, b: u8, g: u8, a: f64) -> String {
-    format!("rgb({},{},{},{})", r, g, b, a)
+    format!("rgba({},{},{},{})", r, g, b, a)
 }
 
 pub type Line = (Point, Point);
