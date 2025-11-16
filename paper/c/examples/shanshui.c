@@ -112,6 +112,6 @@ int main(void)
     // Exception handling:ctrl + c
     signal(SIGINT, Handler);
 
-    draw();
+    shan_shui();
     return 0;
 }
