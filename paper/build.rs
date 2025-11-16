@@ -30,6 +30,7 @@ fn main() {
     println!("cargo:rerun-if-changed=c/lib/e-Paper/EPD_7in5_V2.c");
     println!("cargo:rerun-if-changed=c/lib/e-Paper/EPD_7in5_V2.h");
 
+
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.
